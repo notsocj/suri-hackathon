@@ -109,7 +109,6 @@ struct CheckView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     SuriWordmark()
-                    Text("Suri bago sorry.").font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 12)
                 SuriIconButton(icon: "settings-outline", label: "Settings") { settings = true }

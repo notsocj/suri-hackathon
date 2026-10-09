@@ -7,7 +7,6 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 28) {
                 VStack(alignment: .leading, spacing: 6) {
                     SuriWordmark()
-                    Text("Suri bago sorry.").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 }.padding(.top, 24)
                 Text("Check a message before you act.").font(.largeTitle.weight(.heavy)).tracking(-0.6)
                 onboardingRow("Private by default", "Suri reads the message on your phone. Nothing is uploaded.", "lock-keyhole-outline")

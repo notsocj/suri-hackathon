@@ -78,12 +78,26 @@ struct SuriMark: View {
     }
 }
 
+/// The lockup, lowercase in SF Pro Rounded Black: "suri" with "bago sorry." set small on the same
+/// baseline where a full stop would sit. VoiceOver reads the exact tagline, Suri bago sorry.
 struct SuriWordmark: View {
+    /// Each letter sits a little higher or lower and leans slightly, so the word waves.
+    private static let letters: [(character: String, lift: CGFloat, tilt: Double)] = [
+        ("s", -1.5, -5), ("u", 1.5, 4), ("r", -1, -4), ("i", 1.5, 5)
+    ]
     var body: some View {
-        HStack(spacing: 8) {
-            SuriMark(size: 30).foregroundStyle(SuriTheme.teal)
-            Text("Suri").font(.system(.title2, design: .default, weight: .heavy)).tracking(-0.5)
-        }.accessibilityElement(children: .ignore).accessibilityLabel("Suri")
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
+            HStack(alignment: .firstTextBaseline, spacing: -0.5) {
+                ForEach(Array(Self.letters.enumerated()), id: \.offset) { _, letter in
+                    Text(letter.character).font(.system(size: 38, weight: .black, design: .rounded))
+                        .rotationEffect(.degrees(letter.tilt)).offset(y: letter.lift)
+                }
+            }
+            Text("bago sorry.").font(.system(size: 16, weight: .black, design: .rounded)).tracking(-0.3)
+        }
+        .foregroundStyle(SuriTheme.ink)
+        .accessibilityElement(children: .ignore).accessibilityLabel("Suri bago sorry.")
+        .accessibilityAddTraits(.isHeader)
     }
 }
 
