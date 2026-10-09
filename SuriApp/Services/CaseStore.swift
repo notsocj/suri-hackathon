@@ -2,6 +2,7 @@ import Foundation
 import SuriCore
 
 actor CaseStore {
+    static let shared = CaseStore()
     private let url: URL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         .appendingPathComponent("checks.json")
 
@@ -17,5 +18,13 @@ actor CaseStore {
         var protectedURL = url
         var values = URLResourceValues(); values.isExcludedFromBackup = true
         try protectedURL.setResourceValues(values)
+    }
+    func append(_ assessment: Assessment) throws -> [Assessment] {
+        var current = try load()
+        current.removeAll { $0.id == assessment.id }
+        current.insert(assessment, at: 0)
+        current = Array(current.prefix(50))
+        try save(current)
+        return current
     }
 }

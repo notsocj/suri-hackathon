@@ -39,6 +39,9 @@ struct SettingsView: View {
             Section {
                 NavigationLink("About and licenses") { AboutView() }
             }
+            Section {
+                NavigationLink("Message automation") { AutomationSettingsView() }
+            } header: { Text("Shortcuts and warnings") }
         }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .alert("Turn on online guidance?", isPresented: $consent) {

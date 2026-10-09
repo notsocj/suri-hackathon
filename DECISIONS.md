@@ -1,5 +1,9 @@
 # Suri decisions and open questions
 
+## Local automation implementation — 10 October 2026
+
+After reporting successful manual checks, the user requested incoming-message automation and owner notifications, including other chat apps where possible. The phone's reported OS is **iOS 26.6.1**. The app now exposes an opt-in local-only Shortcuts action and private warning notifications. A user-created Messages trigger must supply the body; arbitrary Messenger/other-app notification access is unavailable through normal notification APIs on this OS. The app does not silently create triggers or claim every incoming message is covered. Notification copy uses Warning signs found rather than asserting fraud. No automated family delivery or cloud message upload was added. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md) for setup and explicit verification limits.
+
 ## Private TestFlight setup — 10 October 2026
 
 The user authorized a private TestFlight demo and supplied App Store Connect API credentials. The account is authenticated through macOS Keychain; secrets remain outside the repository. Apple rejected the listing name Suri as already used. The user's final selection is **Suri: Scam Check**, with **Suri bago sorry.** as its subtitle; the installed app continues to display Suri. Both bundle IDs and their shared App Group are registered. A distribution signing certificate and internal Suri Demo group are created. Archive/export/upload status is tracked in [TESTFLIGHT.md](TESTFLIGHT.md); account setup alone does not establish availability or physical-device validation.

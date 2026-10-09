@@ -4,6 +4,8 @@ Evidence checked **9 October 2026**. Documented capability and observed behavior
 
 ## Capability matrix
 
+Update — 10 October 2026: the user reports iOS 26.6.1 and successful manual checking. A local-only App Intent and owner warning notifications are implemented. Compilation/direct action tests do not validate a real Message trigger, locked/background execution, or notification display. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md). Other chat apps continue to use selected-content sharing/import on this OS.
+
 | Capability | Status | Product consequence |
 | --- | --- | --- |
 | Screenshot/photo import | Documented | Reliable initial input path |

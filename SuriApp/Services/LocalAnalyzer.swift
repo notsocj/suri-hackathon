@@ -10,6 +10,7 @@ nonisolated private final class CancellationFlag: @unchecked Sendable {
 }
 
 actor LocalAnalyzer {
+    static let shared = LocalAnalyzer()
     private var engine: OpaquePointer?
 
     func assess(text: String, revision: UUID) async throws -> Assessment {

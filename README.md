@@ -9,6 +9,7 @@ A native iPhone scam-check companion for Philippine users, with readable evidenc
 - SwiftUI application and lightweight Share Extension in `Suri.xcodeproj`; deployment target iOS 18.
 - Qwen3 1.7B Q4_K_M through llama.cpp b11527 CPU. The pinned GGUF download is **1.28 GB**. The model runs locally after setup; it is a general language model, not a validated specialist scam detector.
 - Screenshot selection, Files import, Apple Vision OCR, editable extracted text, paste/type input, and selected-content Share to Suri intake.
+- Opt-in **Check Message Locally** App Intent for user-configured Messages Shortcuts automation, with private local warning notifications. It checks supplied text only; live SMS triggers, locked-phone execution, and notification display need physical verification. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md). Other apps' notification inboxes are not accessible on the reported iOS 26.6.1 phone.
 - Two local inference passes, grammar-constrained results, evidence/source validation, bounded retry, cancellation, and explicit analysis-failure states.
 - Results show requested actions, quoted evidence, uncertainty, and independent verification guidance. No confidence percentages or guaranteed Safe verdict.
 - Local history holds results/evidence, excludes full messages/screenshots, expires after 7 days, is pruned on next launch, and is limited to 50 records. Deletion controls are available.

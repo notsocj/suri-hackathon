@@ -28,8 +28,8 @@ import SuriCore
     var needsOCRReview = false
     var selectedTab = 0
     let network = NetworkState()
-    private let analyzer = LocalAnalyzer()
-    private let cases = CaseStore()
+    private let analyzer = LocalAnalyzer.shared
+    private let cases = CaseStore.shared
     private var analysisTask: Task<Void, Never>?
     private var onlineTask: Task<Void, Never>?
     private var captureTask: Task<Void, Never>?
@@ -60,6 +60,12 @@ import SuriCore
     func loadHistory() async {
         do { history = try await cases.load(); try await cases.save(history) }
         catch { notice = "Saved checks could not be loaded. You can still check a new message." }
+    }
+    func openPendingAutomationResult() async {
+        guard let id = UserDefaults.standard.string(forKey: "pendingAutomationAssessment") else { return }
+        UserDefaults.standard.removeObject(forKey: "pendingAutomationAssessment")
+        if let result = history.first(where: { $0.id.uuidString == id }) { viewHistory(result) }
+        else { notice = "The warning came from a local check. Its saved result is unavailable or history was off. Paste the original message to review it again." }
     }
 
     func saveFamily(name: String, number: String) throws {
@@ -107,8 +113,7 @@ import SuriCore
                 guard revision == current else { return }
                 assessment = result; phase = .result
                 if historyEnabled {
-                    history.insert(result, at: 0); history = Array(history.prefix(50))
-                    do { try await cases.save(history) }
+                    do { history = try await cases.append(result) }
                     catch { notice = "This result is ready, but it could not be saved to history." }
                 }
                 guard revision == current, !Task.isCancelled else { return }

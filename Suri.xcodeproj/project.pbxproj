@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		040CE93E635FA1C498C4F3AE /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66303B8FC49FED89DE90F667 /* ResultView.swift */; };
 		17B5222FE66D5755D5241856 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD3B865AAA46AA94AA03F4F7 /* Foundation.framework */; };
+		19B9F8EF189CD1D278FFDBFE /* AutomationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2972CA4387C75D204E6E9350 /* AutomationService.swift */; };
 		1BC2CAA39DAAE46738DDEE0C /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EB21358C1EFFCFF003031CD /* OnboardingView.swift */; };
 		1E1D9568BC545B6AAE44E680 /* model-manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 9421D4EB5805318F66952025 /* model-manifest.json */; };
 		20848B4ED07489C592DD01DD /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE7AD3A87C5B0184578CB52 /* CaptureTests.swift */; };
@@ -34,11 +35,13 @@
 		BA584698F2A7FACA97F12627 /* SuriShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 437BCB7A5B419B31277879AC /* SuriShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C4AFC45C19FF0BCC7DBDD442 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56690FF61016DB79DEC6CD9D /* HistoryView.swift */; };
 		C770ECB20370054E169EB012 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FD3B865AAA46AA94AA03F4F7 /* Foundation.framework */; };
+		CC95EE22A34E0944F0D18EE6 /* AutomationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375A6CE59F38FD8667D053F2 /* AutomationSettingsView.swift */; };
 		CCE4DC41F27DF000C3C5B2A3 /* FamilyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0F84116DDF887C765EE3D0 /* FamilyView.swift */; };
 		DA92D0C4F4255659224F8448 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E974770C6882B4709FD593BD /* AppModel.swift */; };
 		DC641F15802D0E061C6F2E1C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7945C2DAC6BFACA4C9FE2403 /* SettingsView.swift */; };
 		E4F03D1B85BBB1859EA430D0 /* SuriCore in Frameworks */ = {isa = PBXBuildFile; productRef = BCC19ECE8F19D9D3CFD897EC /* SuriCore */; };
 		F533D3E850940DD27CD3A71F /* CaseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9BAFE0E8A64F2EA03476C2 /* CaseStore.swift */; };
+		FEC9E6941104399DACE71A2A /* CheckMessageIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86DE1CE1C0134AEEBB7FB255 /* CheckMessageIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,9 +87,11 @@
 		05088B9074A5E294B4C86F88 /* CheckView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CheckView.swift; path = Features/CheckView.swift; sourceTree = "<group>"; };
 		0F515D2F2D92CA6B41E0153A /* SuriApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SuriApp.swift; sourceTree = "<group>"; };
 		1B0C0F59C3E4F21EA4D10D92 /* ModelFiles.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ModelFiles.swift; path = Services/ModelFiles.swift; sourceTree = "<group>"; };
+		2972CA4387C75D204E6E9350 /* AutomationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutomationService.swift; path = Services/AutomationService.swift; sourceTree = "<group>"; };
 		2DB335AA6F416E5E195F505D /* SuriUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SuriUITests.swift; sourceTree = "<group>"; };
 		2FE7AD3A87C5B0184578CB52 /* CaptureTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CaptureTests.swift; sourceTree = "<group>"; };
 		32B029E6AA25FCF61A7B2FF5 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		375A6CE59F38FD8667D053F2 /* AutomationSettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AutomationSettingsView.swift; path = Features/AutomationSettingsView.swift; sourceTree = "<group>"; };
 		3F9BAFE0E8A64F2EA03476C2 /* CaseStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CaseStore.swift; path = Services/CaseStore.swift; sourceTree = "<group>"; };
 		437BCB7A5B419B31277879AC /* SuriShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SuriShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A0F84116DDF887C765EE3D0 /* FamilyView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FamilyView.swift; path = Features/FamilyView.swift; sourceTree = "<group>"; };
@@ -101,6 +106,7 @@
 		73EE14E4F4FAEF1A54B61ADA /* KeychainStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeychainStore.swift; path = Services/KeychainStore.swift; sourceTree = "<group>"; };
 		75D176538363FBD3E79F6308 /* SuriTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SuriTheme.swift; path = Design/SuriTheme.swift; sourceTree = "<group>"; };
 		7945C2DAC6BFACA4C9FE2403 /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Features/SettingsView.swift; sourceTree = "<group>"; };
+		86DE1CE1C0134AEEBB7FB255 /* CheckMessageIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CheckMessageIntent.swift; path = Services/CheckMessageIntent.swift; sourceTree = "<group>"; };
 		9421D4EB5805318F66952025 /* model-manifest.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "model-manifest.json"; sourceTree = "<group>"; };
 		991631D6B56476D55D89CAA1 /* OnlineGuidance.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OnlineGuidance.swift; path = Services/OnlineGuidance.swift; sourceTree = "<group>"; };
 		A7F3F1DC63EBEAB515D97212 /* SuriIntegrationTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SuriIntegrationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -259,6 +265,9 @@
 				991631D6B56476D55D89CAA1 /* OnlineGuidance.swift */,
 				0F515D2F2D92CA6B41E0153A /* SuriApp.swift */,
 				BCDA40FECD9D4F700A3F5EE0 /* Resources */,
+				2972CA4387C75D204E6E9350 /* AutomationService.swift */,
+				86DE1CE1C0134AEEBB7FB255 /* CheckMessageIntent.swift */,
+				375A6CE59F38FD8667D053F2 /* AutomationSettingsView.swift */,
 			);
 			name = SuriApp;
 			path = SuriApp;
@@ -454,6 +463,9 @@
 				8485D038FEFAEA662F9E94B1 /* SuriApp.swift in Sources */,
 				2439CEB796E7385944BDA085 /* SharedInbox.swift in Sources */,
 				56BFA2A6F2F429C1BDE28F0E /* SuriInference.cpp in Sources */,
+				19B9F8EF189CD1D278FFDBFE /* AutomationService.swift in Sources */,
+				FEC9E6941104399DACE71A2A /* CheckMessageIntent.swift in Sources */,
+				CC95EE22A34E0944F0D18EE6 /* AutomationSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -50,4 +50,41 @@ import UIKit
         XCTAssertEqual(received, text)
         XCTAssertNil(SharedInbox.takeNext())
     }
+    func testShortcutsRequireOptIn() async {
+        let defaults = UserDefaults.standard
+        let previous = defaults.object(forKey: AutomationPreferences.enabledKey)
+        defer {
+            if let previous { defaults.set(previous, forKey: AutomationPreferences.enabledKey) }
+            else { defaults.removeObject(forKey: AutomationPreferences.enabledKey) }
+        }
+        defaults.set(false, forKey: AutomationPreferences.enabledKey)
+        do {
+            _ = try await AutomationService.shared.check("Synthetic test input")
+            XCTFail("Disabled Shortcuts must not run inference")
+        } catch { XCTAssertTrue(error is AutomationError) }
+    }
+    func testShortcutsActionRunsFreshLocalInferenceAndDeduplicates() async throws {
+        guard ModelFiles.isInstalled else { throw XCTSkip("The real local model must be installed") }
+        let defaults = UserDefaults.standard
+        let keys = [AutomationPreferences.enabledKey, "shortcutsConsent", "historyEnabled", "cloudEnabled"]
+        let previous = keys.map { defaults.object(forKey: $0) }
+        defer {
+            for (key, value) in zip(keys, previous) {
+                if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
+            }
+        }
+        defaults.set(true, forKey: AutomationPreferences.enabledKey)
+        defaults.set(UUID().uuidString, forKey: "shortcutsConsent")
+        defaults.set(false, forKey: "historyEnabled")
+        defaults.set(true, forKey: "cloudEnabled") // The intent's path must remain independent of this setting.
+        let intent = CheckMessageLocallyIntent()
+        intent.message = "Your login code is 752184. Never give this code to another person. Use your usual app if this login was unexpected."
+        let result = try await intent.perform()
+        let summary = try XCTUnwrap(result.value)
+        XCTAssertFalse(summary.contains("Warning signs found"), summary)
+        XCTAssertTrue(summary.contains("No obvious warning signs") || summary.contains("Needs verification") || summary.contains("Insufficient content"), summary)
+        let repeated = try await AutomationService.shared.check(intent.message)
+        XCTAssertTrue(repeated.contains("No duplicate warning"))
+        XCTAssertTrue(defaults.bool(forKey: "cloudEnabled"))
+    }
 }
