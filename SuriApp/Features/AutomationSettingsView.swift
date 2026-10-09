@@ -102,11 +102,13 @@ struct AutomationSettingsView: View {
             Text("Apple only lets you create this trigger yourself, in the Shortcuts app.").font(.subheadline).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 10) {
                 instruction("Shortcuts → Automation → + → Message")
-                instruction("Leave Sender and Message Contains empty to cover every text, or pick a sender")
+                instruction("Tap Message Contains and enter a common letter, such as a. iOS won't continue until a sender or some text is set")
                 instruction("Choose Run Immediately, then add Suri → Check Message Locally")
-                instruction("Set its Message text to Shortcut Input")
+                instruction("Tap its Message text field and choose Shortcut Input from the row above the keyboard")
             }
             actionMock
+            Text("If Shortcuts ever asks you to type a message, Message text isn't connected yet. A letter checks most texts, but not one without it, like a link or number on its own. For wider coverage, add a second automation using e. Repeats are skipped.")
+                .font(.footnote).foregroundStyle(.secondary)
             Button("Open Shortcuts") { if let url = URL(string: "shortcuts://") { openURL(url) } }
                 .buttonStyle(SuriButtonStyle())
             ShortcutsLink(action: { SuriShortcuts.updateAppShortcutParameters() })
@@ -216,7 +218,7 @@ struct AutomationCoverageView: View {
     var body: some View {
         Form {
             Section("Which messages are checked") {
-                Text("Only text passed by your Shortcuts trigger is checked. Sender and text filters determine coverage; this is not guaranteed protection for every incoming message.")
+                Text("Only text passed by your Shortcuts trigger is checked. iOS requires a sender or some Message Contains text, so Suri checks the texts that match what you enter. A common letter matches most messages but not all; this is not guaranteed protection for every incoming message.")
                 Text("Suri cannot read Messenger or other apps’ notification inboxes on iOS 26. Use sharing, copied text, or screenshot import for those apps.")
                 Text("Background and locked-screen execution depend on iOS and need testing on your phone. An error means no completed check.")
             }

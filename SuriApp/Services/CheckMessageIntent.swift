@@ -7,7 +7,7 @@ struct CheckMessageLocallyIntent: AppIntent {
     }
     @available(iOS 26.0, *)
     nonisolated static var supportedModes: IntentModes { .background }
-    @Parameter(title: "Message text", description: "Pass the received message body from Shortcut Input. Do not pass only the sender or notification title.", inputConnectionBehavior: .connectToPreviousIntentResult)
+    @Parameter(title: "Message text", description: "Pass the received message body from Shortcut Input. Do not pass only the sender or notification title.")
     var message: String
     nonisolated static var parameterSummary: some ParameterSummary { Summary("Check \(\.$message) locally") }
     @MainActor func perform() async throws -> some IntentResult & ReturnsValue<String> {
