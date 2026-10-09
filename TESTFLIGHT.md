@@ -9,7 +9,13 @@
 - Internal TestFlight group: **Suri Demo**. No public link or external review submission is configured.
 - ASC credentials are stored in macOS Keychain. Private signing files remain outside the repository. Do not commit API keys, private signing keys, PKCS#12 identities, or passwords.
 
-## Latest update — build 4
+## Latest update — build 5
+
+Version **1.0.0 (5)** was archived from source commit `623f70c` with `CURRENT_PROJECT_VERSION=5` and `DEVELOPMENT_TEAM` passed to Xcode (the project file itself is unchanged), then exported with the existing App Store profiles and the distribution identity loaded into a temporary keychain that was removed afterward. The **2,737,299-byte** IPA is at ignored `.build/Release/Suri-5.ipa`. Both targets verified as signed by the Apple Distribution identity with a valid signature, the `group.ph.suri.app` App Group, `get-task-allow` false, and no device list in the profile; extracted App Intents metadata includes **Check Message Locally**. Apple completed processing with **VALID** status for build `74bfc73f-47ad-4c3d-b39c-83521039353b`, and the upload command assigned it to the internal **Suri Demo** group without notifying testers or submitting for review.
+
+This build adds the guided **Message automation** setup: a card under the Check header, one checklist (turn on, offline checker, run a test, connect incoming messages, confirm it works), a test action that sends the real private warning notification, and a Connected confirmation that stores only a time and result category. It also guards against a Shortcut wired to the sender and skips texts under ten characters. Before upload: 24 core checks, 8 iOS integration checks, and 4 simulator UI checks passed. **Not verified on a physical iPhone:** a real incoming-text trigger, whether empty Sender/Message Contains filters cover every message, locked-phone execution and timing, background memory use of the local model, and notification display.
+
+## Previous update — build 4
 
 Version **1.0.0 (4)** streamlines Message automation into three steps and adds Apple's native button opening Suri's App Shortcuts page. The ready-made checking action is included with the app; no shortcut download or public iCloud link was created. Its preceding-input connection is enabled in extracted metadata. The targeted real-action integration check passed, as did the device archive, signature checks, and metadata checks. The **2,658,224-byte** IPA is at ignored `.build/Release/Suri-4.ipa`. Apple processing completed with **VALID** status for build `e97d94d6-4d1d-4de9-96c9-197e8563b0f0`. Native-button navigation and real Message-trigger execution still need verification on the user's phone.
 
