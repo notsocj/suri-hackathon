@@ -39,11 +39,18 @@ struct CheckView: View {
         .scrollDismissesKeyboard(.interactively)
         .background(SuriTheme.background)
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar(result) }
-        .navigationTitle(result == nil ? "" : "Your check")
+        .navigationTitle(result == nil ? "" : (model.resultFromAutomation ? "Incoming text" : "Your check"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(result == nil ? .hidden : .automatic, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } }
+            if result != nil {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { model.closeResult() } label: {
+                        Label { Text("Check") } icon: { Image(systemName: "chevron.backward") }.labelStyle(.titleAndIcon)
+                    }.accessibilityLabel("Back to Check").accessibilityIdentifier("result-back")
+                }
+            }
         }
         .onChange(of: photo) { _, selection in
             guard let selection else { return }

@@ -12,6 +12,12 @@ struct ResultView: View {
 
     private var risk: RiskCategory { assessment.result.risk }
     private var nextStep: String { GuidanceStore.nextStep(for: assessment.result.action) }
+    private var provenance: String {
+        let fromText = model.resultFromAutomation && model.assessment?.id == assessment.id
+        return fromText
+            ? "Checked automatically on this device when a text arrived at \(assessment.createdAt.formatted(date: .omitted, time: .shortened))"
+            : "Checked on this device"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 28) {
@@ -33,7 +39,7 @@ struct ResultView: View {
             Text(risk.title).font(.title.weight(.heavy)).tracking(-0.4).foregroundStyle(risk.tint)
                 .accessibilityAddTraits(.isHeader)
             Text(assessment.result.action.description).font(.title3.weight(.medium)).foregroundStyle(SuriTheme.ink)
-            Label { Text("Checked on this device") } icon: { SolarIcon(name: "lock-keyhole-outline", size: 14) }
+            Label { Text(provenance) } icon: { SolarIcon(name: "lock-keyhole-outline", size: 14) }
                 .font(.footnote.weight(.medium)).foregroundStyle(.secondary).padding(.top, 4)
         }
         .padding(22).frame(maxWidth: .infinity, alignment: .leading)

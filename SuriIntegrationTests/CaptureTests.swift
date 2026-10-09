@@ -78,7 +78,10 @@ import UIKit
         defaults.set(false, forKey: "historyEnabled")
         defaults.set(true, forKey: "cloudEnabled") // The intent's path must remain independent of this setting.
         defaults.removeObject(forKey: "automationLastCheck")
-        defer { defaults.removeObject(forKey: "automationLastCheck") }
+        defer { defaults.removeObject(forKey: "automationLastCheck"); defaults.removeObject(forKey: "automationLastRun") }
+        let previousLimit = AutomationService.shortcutWaitLimit
+        AutomationService.shortcutWaitLimit = .seconds(300) // This test needs the finished summary.
+        defer { AutomationService.shortcutWaitLimit = previousLimit }
         let intent = CheckMessageLocallyIntent()
         intent.message = "Your login code is 752184. Never give this code to another person. Use your usual app if this login was unexpected."
         let result = try await intent.perform()
@@ -92,6 +95,40 @@ import UIKit
         let last = try XCTUnwrap(AutomationPreferences.lastCheck)
         XCTAssertLessThan(Date().timeIntervalSince(last.date), 300)
         XCTAssertFalse(last.outcome.contains("752184"))
+        XCTAssertEqual(AutomationPreferences.lastRun?.stage, .finished)
+    }
+    /// Shortcuts reports "unknown error" when an action runs past its limit. A slow check must answer
+    /// early, keep running, and still record its result.
+    func testSlowCheckAnswersShortcutsEarlyAndStillFinishes() async throws {
+        guard ModelFiles.isInstalled else { throw XCTSkip("The real local model must be installed") }
+        let defaults = UserDefaults.standard
+        let keys = [AutomationPreferences.enabledKey, "shortcutsConsent", "historyEnabled", "automationLastCheck", "automationLastRun"]
+        let previous = keys.map { defaults.object(forKey: $0) }
+        let previousLimit = AutomationService.shortcutWaitLimit
+        defer {
+            AutomationService.shortcutWaitLimit = previousLimit
+            for (key, value) in zip(keys, previous) {
+                if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
+            }
+        }
+        defaults.set(true, forKey: AutomationPreferences.enabledKey)
+        defaults.set(UUID().uuidString, forKey: "shortcutsConsent")
+        defaults.set(false, forKey: "historyEnabled")
+        defaults.removeObject(forKey: "automationLastCheck"); defaults.removeObject(forKey: "automationLastRun")
+        AutomationService.shortcutWaitLimit = .milliseconds(50)
+        let t0 = Date()
+        let early = try await AutomationService.shared.check("Approved ka na sa online job! Pay 800 registration fee today para ma-activate ang account mo. Ref \(UUID().uuidString.prefix(6))")
+        let answeredAfter = Date().timeIntervalSince(t0)
+        XCTAssertTrue(early.contains("Still checking"), early)
+        XCTAssertLessThan(answeredAfter, 3, "Shortcuts was answered only after \(answeredAfter) s")
+        XCTAssertEqual(AutomationPreferences.lastRun?.stage, .checking)
+        let deadline = Date().addingTimeInterval(180)
+        while AutomationPreferences.lastRun?.stage == .checking || AutomationPreferences.lastRun?.stage == .saved, Date() < deadline {
+            try await Task.sleep(for: .milliseconds(500))
+        }
+        let stage = AutomationPreferences.lastRun?.stage
+        XCTAssertTrue(stage == .finished || stage == .failed, "Run never completed: \(String(describing: stage))")
+        if stage == .finished { XCTAssertNotNil(AutomationPreferences.lastCheck) }
     }
     func testShortcutsGuardsAgainstWrongInputWithoutModelWork() async throws {
         let defaults = UserDefaults.standard

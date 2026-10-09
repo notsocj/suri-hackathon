@@ -27,6 +27,8 @@ import SuriCore
     var notice: String?
     var needsOCRReview = false
     var selectedTab = 0
+    /// True while showing a result opened from an automatic-check notification.
+    var resultFromAutomation = false
     let network = NetworkState()
     private let analyzer = LocalAnalyzer.shared
     private let cases = CaseStore.shared
@@ -64,7 +66,7 @@ import SuriCore
     func openPendingAutomationResult() async {
         guard let id = UserDefaults.standard.string(forKey: "pendingAutomationAssessment") else { return }
         UserDefaults.standard.removeObject(forKey: "pendingAutomationAssessment")
-        if let result = history.first(where: { $0.id.uuidString == id }) { viewHistory(result) }
+        if let result = history.first(where: { $0.id.uuidString == id }) { viewHistory(result); resultFromAutomation = true }
         else { notice = "The warning came from a local check. Its saved result is unavailable or history was off. Paste the original message to review it again." }
     }
 
@@ -125,7 +127,9 @@ import SuriCore
 
     func cancelCheck() { analysisTask?.cancel(); captureTask?.cancel(); onlineTask?.cancel(); phase = .editing }
     func clearInput() { cancelCheck(); text = ""; assessment = nil; needsOCRReview = false }
-    func viewHistory(_ value: Assessment) { onlineTask?.cancel(); online = nil; onlineStatus = "Not checked online"; assessment = value; phase = .result; selectedTab = 0 }
+    func viewHistory(_ value: Assessment) { onlineTask?.cancel(); online = nil; onlineStatus = "Not checked online"; resultFromAutomation = false; assessment = value; phase = .result; selectedTab = 0 }
+    /// Leaves the result and returns to the Check screen, keeping any text the user typed.
+    func closeResult() { onlineTask?.cancel(); resultFromAutomation = false; phase = .editing }
 
     func installModel() {
         guard !installing else { return }

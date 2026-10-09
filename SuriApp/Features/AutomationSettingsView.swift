@@ -131,7 +131,10 @@ struct AutomationSettingsView: View {
             } else {
                 Text("Send a text to this phone from another number. When it's checked, this turns to Connected.")
                     .font(.subheadline).foregroundStyle(.secondary)
-                Text("If Shortcuts shows an error, that text was not checked.").font(.footnote).foregroundStyle(.secondary)
+                Text("If Shortcuts shows an error, open Suri: the line below says how far the check got.").font(.footnote).foregroundStyle(.secondary)
+            }
+            if let run = AutomationPreferences.lastRunSummary {
+                Text(run).font(.footnote.weight(.semibold)).foregroundStyle(.secondary).accessibilityIdentifier("automation-last-run")
             }
         }
     }
