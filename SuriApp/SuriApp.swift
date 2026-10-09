@@ -1,11 +1,22 @@
 import SwiftUI
 
+/// Lets iOS wake Suri to finish verifying a model download that completed while the app was suspended.
+final class SuriAppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
+                     completionHandler: @escaping () -> Void) {
+        guard identifier == ModelDownloader.identifier else { completionHandler(); return }
+        nonisolated(unsafe) let completion = completionHandler
+        ModelDownloader.shared.reconnect(completion: { completion() })
+    }
+}
+
 @main struct SuriApp: App {
+    @UIApplicationDelegateAdaptor(SuriAppDelegate.self) private var delegate
     @State private var model = AppModel()
     var body: some Scene {
         WindowGroup {
             RootView().environment(model).tint(SuriTheme.teal)
-                .task { await model.loadHistory() }
+                .task { await model.loadHistory(); await model.reconnectDownload() }
         }
     }
 }

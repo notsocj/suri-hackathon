@@ -13,10 +13,10 @@ struct SettingsView: View {
                 Label { Text("Qwen3 1.7B · 4-bit").font(.headline) } icon: { SolarIcon(name: "shield-check-outline") }
                 Text(model.modelStatus).font(.subheadline).foregroundStyle(.secondary)
                 if model.installing {
-                    ProgressView()
-                    Button("Cancel download", role: .cancel) { model.cancelDownload() }
+                    if let fraction = model.downloadFraction { ProgressView(value: fraction) } else { ProgressView() }
+                    Button("Pause download", role: .cancel) { model.cancelDownload() }
                 } else if !model.modelInstalled {
-                    Button("Download model (1.3 GB)") { model.installModel() }.accessibilityIdentifier("download-model")
+                    Button(model.downloadButtonTitle) { model.installModel() }.accessibilityIdentifier("download-model")
                 }
             } header: { Text("Offline checker") } footer: {
                 Text("Downloaded once from Hugging Face. Messages are never part of the download, and checks then work without internet. Accuracy on Filipino and Taglish hasn't been measured yet.")

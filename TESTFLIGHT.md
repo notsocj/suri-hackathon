@@ -17,7 +17,7 @@ Automatic export failed because the API key lacks cloud-signing permission. The 
 
 ## Demo preparation
 
-Install through TestFlight on a physical iPhone, open Suri, and download the pinned **1.28 GB** model in Settings while connected. Keep the app open until verification completes. Model weights are downloaded during setup and are not included in the small application binary. After setup, selected text can be assessed offline.
+Install through TestFlight on a physical iPhone, open Suri, and download the pinned **1.28 GB** model in Settings while connected. The download runs in a background session (lock or switch apps freely, but do not force-quit Suri) and can be paused and resumed. It requires a build that includes the background downloader; builds uploaded before 10 October 2026 03:00 use a foreground download that iOS can interrupt, which shows as "cancelled". Model weights are downloaded during setup and are not included in the small application binary. After setup, selected text can be assessed offline.
 
 Use synthetic examples. Verify fresh local input with connectivity disabled, Share to Suri intake, OCR correction, and cancellation on the actual phone. Simulator results do not establish physical-device latency, memory usage, or Messages delivery. Optional Online guidance needs a separately configured HTTPS gateway; localhost on a phone points to the phone itself.
 

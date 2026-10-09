@@ -21,6 +21,8 @@ import SuriCore
     var onlineStatus = "Not checked online"
     var modelInstalled = ModelFiles.isInstalled
     var installing = false
+    var downloadFraction: Double?
+    var downloadButtonTitle = "Download model (1.3 GB)"
     var modelStatus = ModelFiles.isInstalled ? "Ready for offline checks" : "Local model download needed"
     var notice: String?
     var needsOCRReview = false
@@ -30,7 +32,6 @@ import SuriCore
     private let cases = CaseStore()
     private var analysisTask: Task<Void, Never>?
     private var onlineTask: Task<Void, Never>?
-    private var downloadTask: Task<Void, Never>?
     private var captureTask: Task<Void, Never>?
     private var consentVersion = UUID()
     private var requestedOnline = Set<UUID>()
@@ -53,6 +54,7 @@ import SuriCore
         wifiOnly = UserDefaults.standard.object(forKey: "wifiOnly") as? Bool ?? true
         historyEnabled = UserDefaults.standard.object(forKey: "historyEnabled") as? Bool ?? true
         completedOnboarding = UserDefaults.standard.bool(forKey: "completedOnboarding")
+        ModelDownloader.shared.setHandler { [weak self] event in Task { @MainActor in self?.handleDownload(event) } }
     }
 
     func loadHistory() async {
@@ -122,20 +124,35 @@ import SuriCore
 
     func installModel() {
         guard !installing else { return }
-        installing = true; modelStatus = "Preparing download…"
-        downloadTask = Task {
-            do {
-                try await ModelFiles.install { [weak self] message in
-                    await MainActor.run { self?.modelStatus = message }
-                }
-                modelInstalled = ModelFiles.isInstalled
-                modelStatus = "Ready for offline checks"
-            } catch is CancellationError { modelStatus = "Download paused. Tap Download to retry." }
-            catch { modelStatus = error.localizedDescription }
-            installing = false
+        installing = true; downloadFraction = nil; downloadButtonTitle = "Download model (1.3 GB)"; modelStatus = "Starting download…"
+        Task { await ModelDownloader.shared.start() }
+    }
+    func cancelDownload() { Task { await ModelDownloader.shared.pause() } }
+
+    /// Picks up a download that kept running while Suri was suspended or closed.
+    func reconnectDownload() async {
+        guard !modelInstalled else { return }
+        ModelDownloader.shared.reconnect()
+        if await ModelDownloader.shared.isDownloading() { installing = true; modelStatus = "Downloading…" }
+    }
+    private func handleDownload(_ event: ModelDownloader.Event) {
+        switch event {
+        case .progress(let written, let total):
+            installing = true
+            downloadFraction = total > 0 ? min(1, Double(written) / Double(total)) : nil
+            let size = { (bytes: Int64) in ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file) }
+            modelStatus = "Downloading \(Int((downloadFraction ?? 0) * 100))% · \(size(written)) of \(size(total)). You can lock your phone or switch apps. Don't force-quit Suri."
+        case .finished:
+            installing = false; downloadFraction = nil
+            modelInstalled = ModelFiles.isInstalled
+            modelStatus = modelInstalled ? "Ready for offline checks" : ModelError.download.localizedDescription
+        case .paused:
+            installing = false; downloadFraction = nil
+            downloadButtonTitle = "Resume download"; modelStatus = "Download paused. Your progress is kept."
+        case .failed(let message):
+            installing = false; downloadFraction = nil; downloadButtonTitle = "Try again"; modelStatus = message
         }
     }
-    func cancelDownload() { downloadTask?.cancel() }
 
     func requestGuidance(_ result: Assessment) {
         guard cloudEnabled else { onlineStatus = CloudPolicyError.disabled.localizedDescription; return }

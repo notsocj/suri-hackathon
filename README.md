@@ -29,7 +29,7 @@ open Suri.xcodeproj
 
 Select the **Suri** scheme and iPhone 17 Pro simulator, then Run. Simulator-only ad hoc entitlements enable real Keychain and App Group access without an Apple developer account; do not disable code signing for intake/storage checks. The project is already generated; Ruby's `xcodeproj` gem is only needed if regenerating it with `scripts/generate_project.rb`.
 
-In Suri Settings, download the local model once. The app verifies the pinned model's SHA-256 checksum before marking it ready. Keep the app open during the download. Model download is setup traffic, never a message upload.
+In Suri Settings, download the local model once. The app verifies the pinned model's SHA-256 checksum before marking it ready. The download uses a background session, so it continues if you lock the phone or switch apps, and it can be paused and resumed; do not force-quit Suri. On the simulator, pause/resume and a full verified download were exercised; on a physical iPhone this is not yet verified. Model download is setup traffic, never a message upload.
 
 For development, `python3 scripts/prepare_model.py` prepares the same pinned model under ignored `.build/Models/Qwen3-1.7B-GGUF`. It does not install the model into an app automatically.
 
