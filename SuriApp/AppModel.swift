@@ -1,0 +1,182 @@
+import SwiftUI
+import Observation
+import SuriCore
+
+@MainActor @Observable final class AppModel {
+    enum Phase: Equatable { case editing, extracting, checking, result, failed(String) }
+    var phase: Phase = .editing
+    var text = "" {
+        didSet {
+            if oldValue != text {
+                analysisTask?.cancel(); onlineTask?.cancel()
+                revision = UUID(); assessment = nil; online = nil; onlineStatus = "Not checked online"
+                phase = .editing
+            }
+        }
+    }
+    private(set) var revision = UUID()
+    var assessment: Assessment?
+    var history: [Assessment] = []
+    var online: OnlineGuidance?
+    var onlineStatus = "Not checked online"
+    var modelInstalled = ModelFiles.isInstalled
+    var installing = false
+    var modelStatus = ModelFiles.isInstalled ? "Ready for offline checks" : "Local model download needed"
+    var notice: String?
+    var needsOCRReview = false
+    var selectedTab = 0
+    let network = NetworkState()
+    private let analyzer = LocalAnalyzer()
+    private let cases = CaseStore()
+    private var analysisTask: Task<Void, Never>?
+    private var onlineTask: Task<Void, Never>?
+    private var downloadTask: Task<Void, Never>?
+    private var captureTask: Task<Void, Never>?
+    private var consentVersion = UUID()
+    private var requestedOnline = Set<UUID>()
+
+    var familyName: String { didSet { UserDefaults.standard.set(familyName, forKey: "familyName") } }
+    var familyNumber: String
+    var gatewayToken: String
+    var gatewayURL: String { didSet { UserDefaults.standard.set(gatewayURL, forKey: "gatewayURL"); revokePendingOnline() } }
+    var cloudEnabled: Bool { didSet { UserDefaults.standard.set(cloudEnabled, forKey: "cloudEnabled"); revokePendingOnline() } }
+    var wifiOnly: Bool { didSet { UserDefaults.standard.set(wifiOnly, forKey: "wifiOnly"); revokePendingOnline() } }
+    var historyEnabled: Bool { didSet { UserDefaults.standard.set(historyEnabled, forKey: "historyEnabled") } }
+    var completedOnboarding: Bool { didSet { UserDefaults.standard.set(completedOnboarding, forKey: "completedOnboarding") } }
+
+    init() {
+        familyName = UserDefaults.standard.string(forKey: "familyName") ?? ""
+        familyNumber = KeychainStore.read("familyNumber")
+        gatewayToken = KeychainStore.read("gatewayToken")
+        gatewayURL = UserDefaults.standard.string(forKey: "gatewayURL") ?? ""
+        cloudEnabled = UserDefaults.standard.bool(forKey: "cloudEnabled")
+        wifiOnly = UserDefaults.standard.object(forKey: "wifiOnly") as? Bool ?? true
+        historyEnabled = UserDefaults.standard.object(forKey: "historyEnabled") as? Bool ?? true
+        completedOnboarding = UserDefaults.standard.bool(forKey: "completedOnboarding")
+    }
+
+    func loadHistory() async {
+        do { history = try await cases.load(); try await cases.save(history) }
+        catch { notice = "Saved checks could not be loaded. You can still check a new message." }
+    }
+
+    func saveFamily(name: String, number: String) throws {
+        guard let valid = FamilyMessage.validatedDestination(number), !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw FamilySetupError.invalid
+        }
+        try KeychainStore.write(valid, key: "familyNumber")
+        familyNumber = valid; familyName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    func removeFamily() {
+        do { try KeychainStore.write("", key: "familyNumber"); familyNumber = ""; familyName = "" }
+        catch { notice = error.localizedDescription }
+    }
+    func saveGatewayToken(_ token: String) {
+        guard !token.hasPrefix("sk-") else { notice = "Keep the OpenAI API key on the server. Enter only the gateway access token here."; return }
+        do { try KeychainStore.write(token, key: "gatewayToken"); gatewayToken = token; revokePendingOnline() }
+        catch { notice = error.localizedDescription }
+    }
+
+    func importImage(_ data: Data) {
+        cancelCheck(); captureTask?.cancel(); phase = .extracting; selectedTab = 0
+        let current = revision
+        captureTask = Task {
+            do {
+                let result = try await OCRService.extract(data)
+                try Task.checkCancellation()
+                guard revision == current else { return }
+                text = result.text; needsOCRReview = result.needsReview; phase = .editing
+            } catch is CancellationError { }
+            catch { guard revision == current else { return }; phase = .failed(error.localizedDescription) }
+        }
+    }
+
+    func check() {
+        cancelCheck()
+        do { try AssessmentValidator.validateInput(text) }
+        catch { phase = .failed(error.localizedDescription); return }
+        guard modelInstalled else { phase = .failed(ModelError.missing.localizedDescription); return }
+        phase = .checking; assessment = nil; online = nil; onlineStatus = "Not checked online"
+        let input = text, current = revision
+        analysisTask = Task {
+            do {
+                let result = try await analyzer.assess(text: input, revision: current)
+                try Task.checkCancellation()
+                guard revision == current else { return }
+                assessment = result; phase = .result
+                if historyEnabled {
+                    history.insert(result, at: 0); history = Array(history.prefix(50))
+                    do { try await cases.save(history) }
+                    catch { notice = "This result is ready, but it could not be saved to history." }
+                }
+                guard revision == current, !Task.isCancelled else { return }
+                if cloudEnabled { requestGuidance(result) }
+            } catch is CancellationError { }
+            catch { guard revision == current else { return }; phase = .failed(error.localizedDescription) }
+        }
+    }
+
+    func cancelCheck() { analysisTask?.cancel(); captureTask?.cancel(); onlineTask?.cancel(); phase = .editing }
+    func clearInput() { cancelCheck(); text = ""; assessment = nil; needsOCRReview = false }
+    func viewHistory(_ value: Assessment) { onlineTask?.cancel(); online = nil; onlineStatus = "Not checked online"; assessment = value; phase = .result; selectedTab = 0 }
+
+    func installModel() {
+        guard !installing else { return }
+        installing = true; modelStatus = "Preparing download…"
+        downloadTask = Task {
+            do {
+                try await ModelFiles.install { [weak self] message in
+                    await MainActor.run { self?.modelStatus = message }
+                }
+                modelInstalled = ModelFiles.isInstalled
+                modelStatus = "Ready for offline checks"
+            } catch is CancellationError { modelStatus = "Download paused. Tap Download to retry." }
+            catch { modelStatus = error.localizedDescription }
+            installing = false
+        }
+    }
+    func cancelDownload() { downloadTask?.cancel() }
+
+    func requestGuidance(_ result: Assessment) {
+        guard cloudEnabled else { onlineStatus = CloudPolicyError.disabled.localizedDescription; return }
+        guard network.connected, !wifiOnly || network.wifi else { onlineStatus = "Local result ready. Online guidance needs an allowed connection."; return }
+        guard !requestedOnline.contains(result.id) else { return }
+        let payload: GuidancePayload
+        do { payload = try GuidancePayload(assessment: result) }
+        catch { onlineStatus = "No online request needed for this result."; return }
+        guard !gatewayURL.isEmpty, !gatewayToken.isEmpty else { onlineStatus = "Online service not configured. This result is local."; return }
+        requestedOnline.insert(result.id)
+        let consent = consentVersion, endpoint = gatewayURL, token = gatewayToken, wifiPolicy = wifiOnly
+        onlineStatus = "Getting category-only online guidance…"
+        onlineTask?.cancel()
+        onlineTask = Task {
+            do {
+                let value = try await GuidanceClient.request(payload: payload, endpoint: endpoint, token: token, wifiOnly: wifiPolicy)
+                try Task.checkCancellation()
+                guard consentVersion == consent, cloudEnabled, assessment?.id == result.id else { return }
+                online = value; onlineStatus = "Online guidance added"
+            } catch is CancellationError { }
+            catch {
+                guard consentVersion == consent, assessment?.id == result.id else { return }
+                requestedOnline.remove(result.id)
+                onlineStatus = "Couldn't get online guidance. Your local result is unchanged."
+            }
+        }
+    }
+    func revokePendingOnline() { consentVersion = UUID(); onlineTask?.cancel(); requestedOnline.removeAll(); online = nil; onlineStatus = "Not checked online" }
+
+    func deleteHistory(at offsets: IndexSet) {
+        history.remove(atOffsets: offsets)
+        let current = history
+        Task { do { try await cases.save(current) } catch { notice = "Could not update saved history." } }
+    }
+    func clearHistory() {
+        history = []
+        Task { do { try await cases.save([]) } catch { notice = "Could not clear saved history. Please try again." } }
+    }
+}
+
+nonisolated enum FamilySetupError: Error, LocalizedError {
+    case invalid
+    var errorDescription: String? { "Enter a name and a valid phone number. Confirm the number with the person you trust." }
+}
