@@ -28,7 +28,7 @@ struct CheckView: View {
                     inputEditor
                     if model.text.isEmpty { recentChecks }
                     Text("Your screenshot and message stay on this device.")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                 }
             }.padding(.horizontal, 24).padding(.top, result == nil ? 12 : 8).padding(.bottom, 24)
         }
@@ -95,14 +95,14 @@ struct CheckView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     SuriWordmark()
-                    Text("Suri bago sorry.").font(.footnote).foregroundStyle(.secondary)
+                    Text("Suri bago sorry.").font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 12)
                 SuriIconButton(icon: "settings-outline", label: "Settings") { settings = true }
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text("Check a message").font(.largeTitle.bold()).tracking(-0.6)
-                Text("Before you reply, click, or pay.").font(.body).foregroundStyle(.secondary)
+                Text("Check a message").font(.largeTitle.weight(.heavy)).tracking(-0.6)
+                Text("Before you reply, click, or pay.").font(.body.weight(.medium)).foregroundStyle(.secondary)
             }
         }
     }
@@ -118,9 +118,9 @@ struct CheckView: View {
         HStack(alignment: .top, spacing: 14) {
             SolarIcon(name: "download-minimalistic-outline", size: 26).foregroundStyle(SuriTheme.teal).padding(.top, 2)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Set up offline checking").font(.headline)
+                Text("Set up offline checking").font(.headline.weight(.bold))
                 Text("One-time 1.3 GB download. After that, checks work without internet.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 Button("Open setup") { settings = true }.buttonStyle(SuriLinkStyle())
             }
         }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
@@ -151,9 +151,9 @@ struct CheckView: View {
                 }.labelStyle(.titleAndIcon).buttonBorderShape(.capsule).tint(SuriTheme.teal)
             } else {
                 Text("Check that the text matches the message, especially “not”, codes, amounts, and links. Edit anything the reader missed.")
-                    .font(.footnote).foregroundStyle(model.needsOCRReview ? SuriTheme.warning : .secondary)
+                    .font(.footnote.weight(.medium)).foregroundStyle(model.needsOCRReview ? SuriTheme.warning : .secondary)
                 if model.text.count > 2_000 {
-                    Text("\(model.text.count) / 3,000 characters").font(.caption).foregroundStyle(.secondary)
+                    Text("\(model.text.count) / 3,000 characters").font(.caption.weight(.medium)).foregroundStyle(.secondary)
                 }
             }
         }
@@ -162,15 +162,15 @@ struct CheckView: View {
         switch model.phase {
         case .checking, .extracting:
             VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 12) { ProgressView(); Text(model.phase == .checking ? "Checking on this device…" : "Reading your screenshot…").font(.headline) }
+                HStack(spacing: 12) { ProgressView(); Text(model.phase == .checking ? "Checking on this device…" : "Reading your screenshot…").font(.headline.weight(.bold)) }
                 Text(model.phase == .checking ? "The first check takes longer while the model loads. Your message stays here." : "You can correct the text before checking.")
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 Button("Cancel") { model.cancelCheck() }.buttonStyle(SuriLinkStyle())
             }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
         case .failed(let message):
             VStack(alignment: .leading, spacing: 8) {
-                Text("Could not complete check").font(.headline).foregroundStyle(SuriTheme.warning)
-                Text(message).font(.subheadline)
+                Text("Could not complete check").font(.headline.weight(.bold)).foregroundStyle(SuriTheme.warning)
+                Text(message).font(.subheadline.weight(.medium))
                 Button("Ask someone I trust") { help = true }.buttonStyle(SuriLinkStyle())
             }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
         default: EmptyView()

@@ -16,7 +16,7 @@ struct FamilyView: View {
                     SectionHeading(title: "You stay in control")
                     Text("Nothing sends automatically. You review the draft and tap Send in Messages.")
                     Text("The draft never includes your screenshot, the message, codes, or account details.")
-                }.font(.subheadline).foregroundStyle(.secondary)
+                }.font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
             }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 24)
         }.background(SuriTheme.background).navigationTitle("Family").navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $editing) { NavigationStack { ContactSetupView() } }
@@ -28,7 +28,7 @@ struct FamilyView: View {
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 14) {
             SolarIcon(name: "users-group-rounded-outline", size: 36).foregroundStyle(SuriTheme.teal)
-            Text("Add someone you trust").font(.title.bold()).tracking(-0.4)
+            Text("Add someone you trust").font(.title.weight(.heavy)).tracking(-0.4)
             Text("When a message feels wrong, Suri drafts a short note to them. You choose whether to send it.")
                 .foregroundStyle(.secondary)
             Button("Add trusted person") { editing = true }.buttonStyle(SuriButtonStyle()).padding(.top, 6)
@@ -37,11 +37,11 @@ struct FamilyView: View {
     private var contact: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 14) {
-                Text(initial).font(.title2.weight(.semibold)).foregroundStyle(SuriTheme.teal)
+                Text(initial).font(.title2.weight(.bold)).foregroundStyle(SuriTheme.teal)
                     .frame(width: 52, height: 52).background(SuriTheme.teal.opacity(0.12), in: Circle()).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(model.familyName).font(.title3.weight(.semibold))
-                    Text(model.familyNumber).font(.subheadline).foregroundStyle(.secondary).textSelection(.enabled)
+                    Text(model.familyName).font(.title3.weight(.bold))
+                    Text(model.familyNumber).font(.subheadline.weight(.medium)).foregroundStyle(.secondary).textSelection(.enabled)
                 }
                 Spacer(minLength: 8)
                 Button("Edit") { editing = true }.buttonStyle(SuriLinkStyle())
@@ -49,9 +49,9 @@ struct FamilyView: View {
             Button { help = true } label: { Label { Text("Ask my family") } icon: { SolarIcon(name: "users-group-rounded-outline") } }
                 .buttonStyle(SuriButtonStyle())
             Text("Confirm this number with them directly. Suri can't verify who they are.")
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(.footnote.weight(.medium)).foregroundStyle(.secondary)
             Button("Remove trusted person", role: .destructive) { removing = true }
-                .font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+                .font(.subheadline.weight(.bold)).frame(minHeight: 44)
         }
     }
 }
@@ -97,30 +97,30 @@ struct FamilyHelpView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 if model.familyNumber.isEmpty {
-                    Text("Add someone you trust").font(.title.bold()).tracking(-0.4)
+                    Text("Add someone you trust").font(.title.weight(.heavy)).tracking(-0.4)
                     Text("Choose a trusted person first. Then Suri can draft a help message for you to review.").foregroundStyle(.secondary)
                     Button("Add trusted person") { setup = true }.buttonStyle(SuriButtonStyle())
                 } else {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("To").font(.subheadline).foregroundStyle(.secondary)
-                        Text(model.familyName).font(.title3.weight(.semibold))
-                        Text(model.familyNumber).font(.subheadline).foregroundStyle(.secondary)
+                        Text("To").font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                        Text(model.familyName).font(.title3.weight(.bold))
+                        Text(model.familyNumber).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                     }
                     VStack(alignment: .leading, spacing: 10) {
                         SectionHeading(title: "Message")
                         Text(bodyText).textSelection(.enabled)
                     }.padding(20).frame(maxWidth: .infinity, alignment: .leading).suriCard()
                     Text("It includes no original message or private details. Messages opens next, and you choose whether to send.")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                     if MFMessageComposeViewController.canSendText() {
                         Button("Open Messages") { compose = true }.buttonStyle(SuriButtonStyle())
                     } else {
                         Text("This device can't send through Messages. You can copy the draft instead.")
-                            .font(.subheadline).foregroundStyle(.secondary)
+                            .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                     }
                     Button("Copy message") { UIPasteboard.general.string = bodyText; status = "Copied. Not sent." }
                         .buttonStyle(SuriButtonStyle(filled: !MFMessageComposeViewController.canSendText()))
-                    Text(status).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("family-status")
+                    Text(status).font(.footnote.weight(.medium)).foregroundStyle(.secondary).accessibilityIdentifier("family-status")
                 }
             }.padding(24)
         }.background(SuriTheme.background).navigationTitle("Ask my family").navigationBarTitleDisplayMode(.inline)

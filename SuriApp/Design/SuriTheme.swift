@@ -37,10 +37,10 @@ struct SuriButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
     var filled = true
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 16).padding(.horizontal, 12)
+        configuration.label.font(.headline.weight(.bold)).frame(maxWidth: .infinity).padding(.vertical, 16).padding(.horizontal, 12)
             .foregroundStyle(filled ? Color("ActionText") : SuriTheme.ink)
-            .background(filled ? SuriTheme.teal : SuriTheme.surface, in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(filled ? .clear : Color.primary.opacity(0.12)))
+            .background(filled ? SuriTheme.teal : SuriTheme.surface, in: Capsule())
+            .overlay(Capsule().strokeBorder(filled ? .clear : Color.primary.opacity(0.12)))
             .opacity(!enabled ? 0.45 : configuration.isPressed ? 0.75 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 1), value: configuration.isPressed)
@@ -50,7 +50,7 @@ struct SuriButtonStyle: ButtonStyle {
 /// Quiet inline action: teal, semibold, comfortable 44pt tap height.
 struct SuriLinkStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.subheadline.weight(.semibold)).foregroundStyle(SuriTheme.teal)
+        configuration.label.font(.subheadline.weight(.bold)).foregroundStyle(SuriTheme.teal)
             .frame(minHeight: 44).contentShape(Rectangle()).opacity(configuration.isPressed ? 0.6 : 1)
     }
 }
@@ -65,7 +65,7 @@ extension View {
 struct SectionHeading: View {
     let title: String
     var body: some View {
-        Text(title).font(.headline).foregroundStyle(SuriTheme.ink).accessibilityAddTraits(.isHeader)
+        Text(title).font(.headline.weight(.bold)).foregroundStyle(SuriTheme.ink).accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -82,7 +82,7 @@ struct SuriWordmark: View {
     var body: some View {
         HStack(spacing: 8) {
             SuriMark(size: 30).foregroundStyle(SuriTheme.teal)
-            Text("Suri").font(.system(.title2, design: .default, weight: .bold)).tracking(-0.5)
+            Text("Suri").font(.system(.title2, design: .default, weight: .heavy)).tracking(-0.5)
         }.accessibilityElement(children: .ignore).accessibilityLabel("Suri")
     }
 }

@@ -18,7 +18,7 @@ struct ResultView: View {
             verdict
             actionCard
             if !assessment.result.findings.isEmpty { evidence }
-            Text(assessment.uncertainty).font(.footnote).foregroundStyle(.secondary)
+            Text(assessment.uncertainty).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
             secondaryAction
             if model.cloudEnabled || hasOnlineGuidance { onlineSection }
             details
@@ -30,11 +30,11 @@ struct ResultView: View {
     private var verdict: some View {
         VStack(alignment: .leading, spacing: 12) {
             SolarIcon(name: risk.glyph, size: 34).foregroundStyle(risk.tint)
-            Text(risk.title).font(.title.bold()).tracking(-0.4).foregroundStyle(risk.tint)
+            Text(risk.title).font(.title.weight(.heavy)).tracking(-0.4).foregroundStyle(risk.tint)
                 .accessibilityAddTraits(.isHeader)
-            Text(assessment.result.action.description).font(.title3).foregroundStyle(SuriTheme.ink)
+            Text(assessment.result.action.description).font(.title3.weight(.medium)).foregroundStyle(SuriTheme.ink)
             Label { Text("Checked on this device") } icon: { SolarIcon(name: "lock-keyhole-outline", size: 14) }
-                .font(.footnote).foregroundStyle(.secondary).padding(.top, 4)
+                .font(.footnote.weight(.medium)).foregroundStyle(.secondary).padding(.top, 4)
         }
         .padding(22).frame(maxWidth: .infinity, alignment: .leading)
         .background(risk.tint.opacity(0.09), in: RoundedRectangle(cornerRadius: 28))
@@ -43,7 +43,7 @@ struct ResultView: View {
     private var actionCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeading(title: "What to do")
-            Text(nextStep).font(.body)
+            Text(nextStep).font(.body.weight(.medium))
             Button(speaking ? "Stop reading" : "Read aloud") { toggleSpeech() }.buttonStyle(SuriLinkStyle())
         }
         .padding(20).frame(maxWidth: .infinity, alignment: .leading).suriCard()
@@ -54,13 +54,13 @@ struct ResultView: View {
             SectionHeading(title: "What stood out")
             ForEach(assessment.result.findings) { finding in
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(finding.code.title).font(.subheadline.weight(.semibold))
+                    Text(finding.code.title).font(.subheadline.weight(.bold))
                     HStack(alignment: .top, spacing: 12) {
                         RoundedRectangle(cornerRadius: 2).fill(risk.tint.opacity(0.8)).frame(width: 3)
-                        Text("“\(finding.evidence)”").font(.body).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
+                        Text("“\(finding.evidence)”").font(.body.weight(.medium)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                     }.fixedSize(horizontal: false, vertical: true).padding(14)
                         .background(risk.tint.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
-                    Text(finding.code.explanation).font(.subheadline).foregroundStyle(.secondary)
+                    Text(finding.code.explanation).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 }
             }
         }
@@ -85,13 +85,13 @@ struct ResultView: View {
             if let online = model.online, hasOnlineGuidance {
                 Text(online.guidance).textSelection(.enabled)
                 Text("Guidance about the detected pattern. The cloud did not receive or verify your original message.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                 ForEach(GuidanceStore.references.filter { online.referenceIDs.contains($0.id) }) { reference in
-                    Link(reference.title, destination: reference.url).font(.subheadline)
+                    Link(reference.title, destination: reference.url).font(.subheadline.weight(.medium))
                 }
-                Text(online.generatedAt.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
+                Text(online.generatedAt.formatted(date: .abbreviated, time: .shortened)).font(.caption.weight(.medium)).foregroundStyle(.secondary)
             } else {
-                Text(model.onlineStatus).font(.subheadline).foregroundStyle(.secondary)
+                Text(model.onlineStatus).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 Button("Get category-only guidance") { model.requestGuidance(assessment) }.buttonStyle(SuriLinkStyle())
             }
         }
@@ -101,14 +101,14 @@ struct ResultView: View {
         DisclosureGroup("References and details") {
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(GuidanceStore.references) { reference in
-                    Link(reference.title, destination: reference.url).font(.subheadline)
+                    Link(reference.title, destination: reference.url).font(.subheadline.weight(.medium))
                 }
                 Text("Guidance pack reviewed \(GuidanceStore.version). These are verification references, not evidence about this sender.")
                 Text("Model: \(assessment.model)")
                 Text("Local processing: \(assessment.elapsedSeconds, specifier: "%.1f") seconds")
                 Text(assessment.createdAt.formatted(date: .abbreviated, time: .shortened))
-            }.font(.caption).foregroundStyle(.secondary).padding(.top, 12)
-        }.font(.subheadline)
+            }.font(.caption.weight(.medium)).foregroundStyle(.secondary).padding(.top, 12)
+        }.font(.subheadline.weight(.medium))
     }
 
     private func toggleSpeech() {
@@ -130,9 +130,9 @@ struct HistoryRow: View {
         HStack(alignment: .top, spacing: 14) {
             SolarIcon(name: risk.glyph).foregroundStyle(risk.tint).padding(.top, 1)
             VStack(alignment: .leading, spacing: 3) {
-                Text(risk.title).font(.headline).foregroundStyle(SuriTheme.ink)
-                Text(summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
-                Text(assessment.createdAt.formatted(.relative(presentation: .named))).font(.caption).foregroundStyle(.secondary)
+                Text(risk.title).font(.headline.weight(.bold)).foregroundStyle(SuriTheme.ink)
+                Text(summary).font(.subheadline.weight(.medium)).foregroundStyle(.secondary).lineLimit(2)
+                Text(assessment.createdAt.formatted(.relative(presentation: .named))).font(.caption.weight(.medium)).foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
             SolarIcon(name: "alt-arrow-right-outline", size: 16).foregroundStyle(.secondary).padding(.top, 4)

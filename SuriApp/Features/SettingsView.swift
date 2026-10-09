@@ -10,8 +10,8 @@ struct SettingsView: View {
         @Bindable var model = model
         Form {
             Section {
-                Label { Text("Qwen3 1.7B · 4-bit").font(.headline) } icon: { SolarIcon(name: "shield-check-outline") }
-                Text(model.modelStatus).font(.subheadline).foregroundStyle(.secondary)
+                Label { Text("Qwen3 1.7B · 4-bit").font(.headline.weight(.bold)) } icon: { SolarIcon(name: "shield-check-outline") }
+                Text(model.modelStatus).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
                 if model.installing {
                     if let fraction = model.downloadFraction { ProgressView(value: fraction) } else { ProgressView() }
                     Button("Pause download", role: .cancel) { model.cancelDownload() }
@@ -79,18 +79,18 @@ struct AboutView: View {
     var body: some View {
         Form {
             Section {
-                Text("Suri bago sorry.").font(.headline)
+                Text("Suri bago sorry.").font(.headline.weight(.bold))
                 Text("Suri helps you pause and verify. It can't guarantee a message is legitimate, confirm who sent it, or block a payment.")
             }
             Section {
                 Text("Built with SwiftUI, Apple Vision, llama.cpp, and Qwen3 (Apache 2.0). Solar icons by 480 Design (CC BY 4.0). Development assisted by Codex and Claude Code.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.footnote.weight(.medium)).foregroundStyle(.secondary)
                 Link("Solar icon attribution", destination: URL(string: "https://icon-sets.iconify.design/solar/")!)
                 Link("Qwen model and license", destination: URL(string: "https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF")!)
                 NavigationLink("Third-party notices") {
                     ScrollView {
                         Text((try? String(contentsOf: Bundle.main.url(forResource: "THIRD_PARTY_NOTICES", withExtension: "txt")!, encoding: .utf8)) ?? "License notices unavailable.")
-                            .font(.footnote).textSelection(.enabled).padding(24)
+                            .font(.footnote.weight(.medium)).textSelection(.enabled).padding(24)
                     }.navigationTitle("Notices")
                 }
             }

@@ -15,7 +15,7 @@ final class SuriAppDelegate: NSObject, UIApplicationDelegate {
     @State private var model = AppModel()
     var body: some Scene {
         WindowGroup {
-            RootView().environment(model).tint(SuriTheme.teal)
+            RootView().environment(model).tint(SuriTheme.teal).environment(\.font, .body.weight(.medium))
                 .task { await model.loadHistory(); await model.reconnectDownload() }
         }
     }
