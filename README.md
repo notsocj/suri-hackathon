@@ -10,6 +10,7 @@ A native iPhone scam-check companion for Philippine users, with readable evidenc
 - Qwen3 1.7B Q4_K_M through llama.cpp b11527 CPU. The pinned GGUF download is **1.28 GB**. The model runs locally after setup; it is a general language model, not a validated specialist scam detector.
 - Screenshot selection, Files import, Apple Vision OCR, editable extracted text, paste/type input, and selected-content Share to Suri intake.
 - Opt-in **Check Message Locally** App Intent for a user-created Messages automation in Shortcuts, with private local warning notifications, a one-page in-app setup guide, a test action, and a Connected confirmation. iOS requires the user to create the trigger and to enter some Message Contains text (a common letter such as `a`). See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md).
+- An instant **"Wait! Hayaan mo si Suri suriin ito."** heads-up when an automated text mentions money, a code, a promo, an account or a link, replaced by the result when the local check finishes.
 - **Check Copied Message** App Shortcut for Messenger and other apps that no iOS automation can read: copy a message, run it from Shortcuts, Spotlight, Siri or the Action Button, and Suri opens and checks the copied text after iOS's paste prompt.
 - Two local inference passes, grammar-constrained results, evidence/source validation, bounded retry, cancellation, and explicit analysis-failure states.
 - Results show requested actions, quoted evidence, uncertainty, and independent verification guidance. No confidence percentages or guaranteed Safe verdict.

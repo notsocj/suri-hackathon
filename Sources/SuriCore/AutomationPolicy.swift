@@ -12,6 +12,26 @@ public enum AutomationPolicy {
         return Warning(title: "Suri: Warning signs found",
                        body: "Pause before acting. Open Suri to review this local check and verify independently.")
     }
+    /// Shown the moment a risky-looking text arrives, before the model runs. Fixed copy only.
+    public static let headsUp = Warning(title: "Wait! Hayaan mo si Suri suriin ito.",
+        body: "This text mentions money, a code, a promo, or a link. Don't reply, click, or pay until Suri finishes checking.")
+    public static let couldNotFinish = Warning(title: "Suri couldn't finish checking",
+        body: "Open Suri and paste the message to check it again. Until then, don't reply, click, or pay.")
+    /// Replaces the heads-up when the check ends without warning signs. Never says "safe".
+    public static func finished(for result: ModelAssessment) -> Warning {
+        Warning(title: "Suri finished checking", body: summary(for: result))
+    }
+
+    /// Deterministic pre-screen for the heads-up: money, codes, promos, accounts, links, and pressure.
+    /// It decides only whether to say "wait"; the verdict always comes from the full local check.
+    public static func needsHeadsUp(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        if lower.range(of: #"[₱$€£¥]|\b(?:php|usd|p)\s?\d{2,}|(?<![\d,.])\d{1,3}(?:,\d{3})+(?:\.\d+)?"#, options: .regularExpression) != nil { return true }
+        if lower.range(of: #"https?://|www\.|\b[a-z0-9-]+\.(?:com|ph|net|org|xyz|top|info|link|site|online)\b|bit\.ly"#, options: .regularExpression) != nil { return true }
+        let words = #"\b(?:pesos?|piso|bayad|bayaran|magbayad|fee|deposit|payment|pay|padala|send money|cash|loan|utang|gcash|maya|bank|bangko|account|wallet|otp|code|pin|password|passcode|verification|verify|i-verify|promo|libre|free|discount|voucher|claim|prize|premyo|panalo|won|winner|reward|raffle|urgent|ngayon din|suspended|blocked|ma-block|na-block|click|link)\b"#
+        return lower.range(of: words, options: .regularExpression) != nil
+    }
+
     public enum InputIssue: Equatable, Sendable { case tooShort, looksLikeSender }
     /// Cheap, deterministic screening before any model work. A Shortcut that is wired to the sender instead of
     /// the message body passes a phone number; very short texts carry too little to assess.

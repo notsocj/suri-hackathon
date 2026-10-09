@@ -97,6 +97,9 @@ import SuriCore
         }
         let consent = AutomationPreferences.consent
         let started = Date()
+        // Risky-looking texts get an instant "wait" before the model runs; the result later replaces it.
+        let notificationID: String? = source == .shortcut && AutomationPolicy.needsHeadsUp(text) ? "suri-run-" + UUID().uuidString : nil
+        if let notificationID { await Self.post(AutomationPolicy.headsUp, id: notificationID, assessmentID: nil) }
         // Keeps the app running if Shortcuts stops waiting, so the check can still save and warn.
         let assertion = BackgroundAssertion.begin()
         if source == .shortcut { AutomationPreferences.recordRun(.checking, started: started) }
@@ -104,11 +107,18 @@ import SuriCore
             var succeeded = false
             defer { self.ledger.finish(fingerprint, succeeded: succeeded, now: Date()); self.active = nil; assertion.end() }
             do {
-                let summary = try await self.complete(text, consent: consent, started: started, source: source)
+                let summary = try await self.complete(text, consent: consent, started: started, source: source, notificationID: notificationID)
                 succeeded = true
                 return summary
             } catch {
                 if source == .shortcut { AutomationPreferences.recordRun(.failed, started: started) }
+                if let notificationID {
+                    if error is AutomationError, (error as? AutomationError) == .disabled {
+                        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notificationID])
+                    } else {
+                        await Self.post(AutomationPolicy.couldNotFinish, id: notificationID, assessmentID: nil)
+                    }
+                }
                 throw error
             }
         }
@@ -133,7 +143,18 @@ import SuriCore
 
     static var shortcutWaitLimit: Duration = .seconds(20)
 
-    private func complete(_ text: String, consent: String, started: Date, source: Source) async throws -> String {
+    /// Posts fixed copy only. Reusing an identifier replaces the earlier notification in place.
+    private static func post(_ copy: AutomationPolicy.Warning, id: String, assessmentID: UUID?) async {
+        let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+        guard status == .authorized || status == .provisional || status == .ephemeral else { return }
+        let content = UNMutableNotificationContent()
+        content.title = copy.title; content.body = copy.body; content.sound = .default
+        content.threadIdentifier = "suri-message-warnings"
+        if let assessmentID { content.userInfo = ["suriAssessmentID": assessmentID.uuidString] }
+        try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: nil))
+    }
+
+    private func complete(_ text: String, consent: String, started: Date, source: Source, notificationID: String?) async throws -> String {
         let result = try await analyzer.assess(text: text, revision: UUID())
         try Task.checkCancellation()
         guard AutomationPreferences.enabled, AutomationPreferences.consent == consent else { throw AutomationError.disabled }
@@ -158,7 +179,7 @@ import SuriCore
                 content.title = warning.title; content.body = warning.body; content.sound = .default
                 content.threadIdentifier = "suri-message-warnings"
                 content.userInfo = ["suriAssessmentID": result.id.uuidString]
-                let identifier = "suri-check-" + result.id.uuidString
+                let identifier = notificationID ?? "suri-check-" + result.id.uuidString // replaces the heads-up
                 do {
                     try await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: identifier, content: content, trigger: nil))
                     if !AutomationPreferences.enabled || AutomationPreferences.consent != consent {
@@ -172,6 +193,8 @@ import SuriCore
             } else {
                 summary += " No notification was submitted. Enable Suri notifications in Settings."
             }
+        } else if let notificationID {
+            await Self.post(AutomationPolicy.finished(for: result.result), id: notificationID, assessmentID: saved ? result.id : nil)
         }
         if source == .shortcut {
             AutomationPreferences.recordCheck(outcome: result.result.risk.rawValue)

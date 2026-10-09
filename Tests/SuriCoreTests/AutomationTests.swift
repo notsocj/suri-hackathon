@@ -62,4 +62,23 @@ struct AutomationTests {
                         "Call 09171234567 now to claim your prize"]
         for text in messages { #expect(AutomationPolicy.inputIssue(for: text) == nil) }
     }
+    @Test func moneyCodesPromosAndLinksGetAHeadsUp() {
+        let risky = ["Pay ₱800 registration fee today", "Earn P3,000 daily, no interview", "Your OTP is 482913",
+                     "Ibigay ang code na natanggap mo", "Libre na load! Claim mo na", "GCash: May suspicious transaction sa wallet mo",
+                     "Update your password here: https://example.invalid/login", "Nanalo ka ng premyo!", "Send PHP 500 now"]
+        for text in risky { #expect(AutomationPolicy.needsHeadsUp(text), "\(text)") }
+    }
+    @Test func ordinaryTextsStayQuiet() {
+        let ordinary = ["Hi anak, dinner at 7 tonight sa bahay ni Tita. Bring a jacket, malamig daw.",
+                        "Nasa jeep na ako, malapit na.", "Happy birthday! See you on Sunday.", "Okay po, salamat."]
+        for text in ordinary { #expect(!AutomationPolicy.needsHeadsUp(text), "\(text)") }
+    }
+    @Test func headsUpAndFollowUpsCarryNoMessageContent() {
+        let result = ModelAssessment(risk: .noObviousSigns, action: .ordinary, quality: .complete, findings: [])
+        let copy = [AutomationPolicy.headsUp, AutomationPolicy.couldNotFinish, AutomationPolicy.finished(for: result)]
+            .map { $0.title + $0.body }.joined()
+        #expect(!copy.contains("482913"))
+        #expect(!copy.lowercased().contains("safe"))
+        #expect(copy.contains("does not confirm legitimacy"))
+    }
 }

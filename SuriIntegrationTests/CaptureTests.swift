@@ -1,6 +1,8 @@
 import XCTest
+import UserNotifications
 import UIKit
 @testable import Suri
+import SuriCore
 
 @MainActor final class CaptureTests: XCTestCase {
     private func screenshot(text: String) -> Data {
@@ -119,6 +121,15 @@ import UIKit
         let t0 = Date()
         let early = try await AutomationService.shared.check("Approved ka na sa online job! Pay 800 registration fee today para ma-activate ang account mo. Ref \(UUID().uuidString.prefix(6))")
         let answeredAfter = Date().timeIntervalSince(t0)
+        let center = UNUserNotificationCenter.current()
+        let status = await center.notificationSettings().authorizationStatus
+        let authorized = status == .authorized
+        var headsUpID: String?
+        if authorized {
+            let delivered = await center.deliveredNotifications()
+            headsUpID = delivered.first { $0.request.content.title == AutomationPolicy.headsUp.title }?.request.identifier
+            XCTAssertNotNil(headsUpID, "A money text must get the Wait heads-up before the model finishes")
+        }
         XCTAssertTrue(early.contains("Still checking"), early)
         XCTAssertLessThan(answeredAfter, 3, "Shortcuts was answered only after \(answeredAfter) s")
         XCTAssertEqual(AutomationPreferences.lastRun?.stage, .checking)
@@ -129,6 +140,11 @@ import UIKit
         let stage = AutomationPreferences.lastRun?.stage
         XCTAssertTrue(stage == .finished || stage == .failed, "Run never completed: \(String(describing: stage))")
         if stage == .finished { XCTAssertNotNil(AutomationPreferences.lastCheck) }
+        if let headsUpID {
+            let same = await center.deliveredNotifications().filter { $0.request.identifier == headsUpID }
+            XCTAssertEqual(same.count, 1, "The result replaces the heads-up instead of stacking")
+            XCTAssertNotEqual(same.first?.request.content.title, AutomationPolicy.headsUp.title, "The heads-up must be resolved")
+        }
     }
     func testShortcutsGuardsAgainstWrongInputWithoutModelWork() async throws {
         let defaults = UserDefaults.standard
