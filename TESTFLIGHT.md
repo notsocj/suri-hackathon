@@ -9,7 +9,13 @@
 - Internal TestFlight group: **Suri Demo**. No public link or external review submission is configured.
 - ASC credentials are stored in macOS Keychain. Private signing files remain outside the repository. Do not commit API keys, private signing keys, PKCS#12 identities, or passwords.
 
-## Latest update — build 8
+## Latest update — build 9
+
+Version **1.0.0 (9)** was archived from source commit `0fd3fb9` (build number and team passed to Xcode; project file unchanged) and exported with the existing App Store profiles and the distribution identity in a temporary keychain removed afterward. The **2,812,110-byte** IPA is at ignored `.build/Release/Suri-9.ipa`. Both targets verified as Apple Distribution signed with valid signatures, the `group.ph.suri.app` App Group, `get-task-allow` false, and build number 9; the extracted App Intents metadata lists **Check Message Locally** (Message text `inputConnectionBehavior = 0`) and **Check Copied Message**. Apple completed processing with **VALID** status for build `acc0f366-047b-49ad-8884-cad7cd11e209`, assigned to the internal **Suri Demo** group without notifying testers or submitting for review.
+
+This build adds the lowercase wavy "suri bago sorry." wordmark, moves the typing Done button into the Message heading, and adds **Check Copied Message** for Messenger and other apps. It includes build 8's early-answer fix. Before archiving: 24 core, 10 iOS integration, and 4 simulator UI checks passed, and Check Copied Message was run end to end from Shortcuts in the simulator. **Unverified on the phone:** the early-answer fix, locked-screen runs, Check Copied Message and the Action Button.
+
+## Previous update — build 8
 
 Version **1.0.0 (8)** was archived from source commit `5c62c89` (build number and team passed to Xcode; project file unchanged) and exported with the existing App Store profiles and the distribution identity in a temporary keychain removed afterward. The **2,795,539-byte** IPA is at ignored `.build/Release/Suri-8.ipa`. Both targets verified as Apple Distribution signed with valid signatures, the `group.ph.suri.app` App Group, `get-task-allow` false, build number 8, and Message text `inputConnectionBehavior = 0`. Apple completed processing with **VALID** status for build `6fb3c969-dade-4f0e-b319-4229bd004afb`, assigned to the internal **Suri Demo** group without notifying testers or submitting for review.
 
