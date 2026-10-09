@@ -10,6 +10,8 @@ The app uses a bounded, file-protected local JSON history, pruned on launch (7-d
 
 `gateway` is an optional Node 24 service using OpenAI Responses with a strict category-only input schema. Unknown fields are rejected. It returns pattern guidance with approved reference IDs from a dated pack, not live website reputation. Cloud access is off by default, opt-in, revocable, network-policy constrained, and never required by local inference. Live provider execution awaits user credential configuration.
 
+**Automation (implemented 10 October 2026):** `CheckMessageLocallyIntent` → `AutomationService` (opt-in and consent check, deterministic input guards, a salted duplicate ledger, a UIKit background-time request) → `LocalAnalyzer` → `CaseStore` → `UNUserNotificationCenter`. The intent answers Shortcuts within 20 seconds while the check finishes in the background. A deterministic pre-screen in `SuriCore.AutomationPolicy` decides whether to post an instant heads-up, which the result replaces in place. `CheckCopiedMessageIntent` opens the app and checks the clipboard only on request. Notification copy lives in `SuriCore` and is unit-tested to contain no message content.
+
 The proposed architecture below remains useful for future expansion; it must not be read as a list of implemented integrations.
 
 ## Proposed architecture

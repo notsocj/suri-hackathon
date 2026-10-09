@@ -24,7 +24,7 @@ A focused reliable workflow is more valuable than a large feature list. Existing
 
 - Substantially build the project during the hackathon.
 - Disclose existing code, assets, models/frameworks as required, and AI coding tools.
-- AI coding tools, including Devin, are allowed; disclose use. Codex was used for this context preparation.
+- AI coding tools, including Devin, are allowed; disclose use. Codex prepared this context and built the initial app; Claude Code was used on 10 October 2026 for the interface redesign, automation fixes and features, and TestFlight builds 5 onward. See the README Disclosures.
 - Outside human help is prohibited. Only officially listed participants can compete.
 - One person can join one team; one project per team.
 - Solo participation is allowed; 1–4 members is recommended rather than a stated hard maximum.

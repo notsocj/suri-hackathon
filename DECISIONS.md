@@ -1,5 +1,14 @@
 # Suri decisions and open questions
 
+## Later decisions — 10 October 2026 (morning)
+
+- **Interface:** the user directed a simpler, more direct UI: capsule buttons, heavier SF Pro weights, a back button on results, and a lowercase wavy SF Pro Rounded "suri bago sorry." wordmark with no logo. The app icon was redrawn as a message bubble with a lens (original artwork).
+- **Message automation stays on Shortcuts (option 3).** iOS 26 requires the user to create the trigger and to enter Message Contains text (observed: Next stays disabled when both filters are empty). The in-app guide is one page with eight numbered steps, verified step by step in the simulator.
+- **Messenger cannot be read automatically on iOS 26.** The user chose the closest path: a Check Copied Message App Shortcut (Shortcuts, Siri, Spotlight, Action Button).
+- **Automatic family alerts remain deferred.** An SMS backend, a Shortcuts Send Message step, or push to a relative's app were each judged too risky or unverifiable before the deadline. Family help stays a previewed message the user sends.
+- **Heads-up notification:** at the user's suggestion, texts mentioning money, codes, promos, accounts or links get an instant "Wait! Hayaan mo si Suri suriin ito." that is replaced by the result.
+- The repository must be public by the deadline; the user decides when to change its visibility.
+
 ## Local automation implementation — 10 October 2026
 
 After reporting successful manual checks, the user requested incoming-message automation and owner notifications, including other chat apps where possible. The phone's reported OS is **iOS 26.6.1**. The app now exposes an opt-in local-only Shortcuts action and private warning notifications. A user-created Messages trigger must supply the body; arbitrary Messenger/other-app notification access is unavailable through normal notification APIs on this OS. The app does not silently create triggers or claim every incoming message is covered. Notification copy uses Warning signs found rather than asserting fraud. No automated family delivery or cloud message upload was added. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md) for setup and explicit verification limits.

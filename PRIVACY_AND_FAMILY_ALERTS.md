@@ -1,5 +1,7 @@
 # Suri privacy and trusted family alerts
 
+**Current implementation, 10 October 2026:** automatic notifications go only to the phone's owner. Their copy is fixed (heads-up, warning, finished, could not finish) and never includes the message, sender, code, link, or evidence. Automatic family delivery is **not implemented**. For automated checks Suri stores the normal result and evidence (if history is on), plus the time and stage of the last run and the time and category of the last check; never the full message. Check Copied Message reads the clipboard only when the user runs it, after the iOS paste prompt.
+
 ## Locked MVP policy
 
 - Local OCR and Qwen analysis run first. Notification receipt and Wi-Fi availability do not prove current service connectivity and do not supply consent.

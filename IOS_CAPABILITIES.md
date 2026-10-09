@@ -6,6 +6,8 @@ Evidence checked **9 October 2026**. Documented capability and observed behavior
 
 Update — 10 October 2026: the user reports iOS 26.6.1 and successful manual checking. A local-only App Intent and owner warning notifications are implemented. Compilation/direct action tests do not validate a real Message trigger, locked/background execution, or notification display. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md). Other chat apps continue to use selected-content sharing/import on this OS.
 
+Observed on the user's iPhone (iOS 26.6.1), 10 October 2026: a personal **Message** automation fires on real incoming SMS and offers **Run Immediately**; it cannot be saved with both Sender and Message Contains empty; an App Intent with an unconnected required parameter makes Shortcuts prompt for text at run time; a long-running background App Intent was reported by Shortcuts as "unknown error" although the app had saved its result. Messenger messages are not available to any iOS 26 trigger.
+
 | Capability | Status | Product consequence |
 | --- | --- | --- |
 | Screenshot/photo import | Documented | Reliable initial input path |

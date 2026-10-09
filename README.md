@@ -4,6 +4,19 @@
 
 A native iPhone scam-check companion for Philippine users, with readable evidence and user-controlled trusted-family help. Selected content is assessed locally; optional Online guidance shares only fixed categories.
 
+## Submission summary
+
+| Item | Detail |
+| --- | --- |
+| Project | **Suri**, "Suri bago sorry." |
+| What it does | Checks a suspicious text, screenshot, or copied chat message on the phone with a local AI model, shows the exact words behind each warning and a next step, warns automatically about incoming SMS, and helps the user ask a trusted relative. |
+| Team | _To be filled in by the team before submission._ |
+| Local AI | Qwen3 1.7B (Apache 2.0), `ggml-org/Qwen3-1.7B-GGUF` Q4_K_M at revision `daeb8e2`, run by llama.cpp b11527 on the CPU, with Apple Vision OCR |
+| App stack | Swift 6.3.3, SwiftUI, App Intents, UserNotifications; Xcode 26.6; iOS 18 deployment target; tested on iOS 26.5 simulator and the user's iPhone on iOS 26.6.1 |
+| Cloud (optional, off by default) | Node 24 gateway calling the OpenAI Responses API (`gpt-4.1-mini` by default) with category-only input. Not configured or verified live. |
+| AI coding tools | Codex and Claude Code (see Disclosures) |
+| Demo video / post | _To be added by the team._ |
+
 ## Current implementation
 
 - SwiftUI application and lightweight Share Extension in `Suri.xcodeproj`; deployment target iOS 18.
@@ -29,7 +42,18 @@ Reported by the user from the phone, with screenshots:
 - A Messages automation fired on real incoming SMS from a second phone and ran immediately. With build 7 the first incoming text was checked and produced a Suri warning; tapping it opened the result.
 - On a second, longer text, Shortcuts reported "Check Message Locally could not run because an unknown error occurred" although Suri had saved the correct result. Build 8 answers Shortcuts early and finishes the check in the background; that fix is **verified only in the simulator so far**.
 
-**Not tested on the phone:** build 8's early-answer fix, locked-screen runs, background memory use and timing, coverage of a single-letter Message Contains filter, Check Copied Message and the Action Button, the Messages composer for family help, and VoiceOver. SMS filtering, automatic family delivery, and live OpenAI connectivity are not implemented or not configured and must not be claimed.
+**Not tested on the phone:** build 8's early-answer fix, build 10's heads-up notification, locked-screen runs, background memory use and timing, coverage of a single-letter Message Contains filter, Check Copied Message and the Action Button, the Messages composer for family help, and VoiceOver. SMS filtering, automatic family delivery, and live OpenAI connectivity are not implemented or not configured and must not be claimed.
+
+## For judges
+
+TestFlight distribution is a private internal group, so the quickest way to evaluate is to build from source in the simulator (below). In about five minutes after setup:
+
+1. Download the model in Settings (one time, 1.28 GB), then turn on airplane mode on the Mac or disconnect.
+2. On Check, paste a synthetic scam such as "Pay ₱800 registration fee today para ma-activate ang account mo." and a harmless one such as "Dinner at 7 tonight sa bahay ni Tita." The first shows Warning signs found with the quoted words; the second shows No obvious warning signs, never "safe".
+3. Open Settings → Message automation to see the guided setup, the Run a test action (fires a real local notification) and the one-page Shortcuts recipe. A live SMS trigger needs a physical iPhone and a second phone.
+4. In Shortcuts, search "Check Copied Message" to run the Messenger path on copied text.
+
+All sample messages in this repository are synthetic.
 
 ## Run locally
 

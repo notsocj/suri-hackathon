@@ -3,6 +3,8 @@
 
 ## Current observed validation
 
+**Update, 10 October 2026 (morning).** Simulator checks now total 27 core, 10 iOS integration, 6 gateway, and 4 UI tests. The user has also tested private TestFlight builds on their iPhone (iOS 26.6.1): the model downloads, manual checks work, and a Messages automation fired on real SMS from a second phone; with build 7 the first text produced a Suri warning that opened the result, and a second, longer text made Shortcuts report "unknown error" although Suri saved the correct result. Builds 8–10 add an early answer to Shortcuts, Check Copied Message, and an instant heads-up; those are verified in the simulator only. See [README.md](README.md) and [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md). The bullets below are the original 9 October record.
+
 - Xcode 26.6 / Swift 6.3.3; iPhone 17 Pro simulator, iOS 26.5. Signed native app and Share Extension compile successfully.
 - 16 deterministic Swift test functions pass, including parameterized variants: schema/evidence, negation, OCR source spans, consent, recipient validation, private-field exclusion, and narrow two-pass code-intent reconciliation.
 - Six gateway policy tests pass without a provider key or live API request.
@@ -13,7 +15,7 @@
 - Simulator local processing observed about 5–15 seconds in early checks; final two-pass/retry timing varies and is recorded per result. These are Mac-hosted simulator measurements, not iPhone performance figures.
 - No live OpenAI request or family message was sent. Real Messages delivery, provider credentials/connectivity, physical iPhone performance, and a complete VoiceOver walkthrough remain unverified.
 
-Use the synthetic image in fixtures/synthetic-message.png for capture demonstrations. State that it is synthetic and that the demo is running in a simulator. Do not claim airplane-mode physical-device validation, model calibration, live domain reputation, or confirmed delivery.
+Use the synthetic image in fixtures/synthetic-message.png for capture demonstrations. State that it is synthetic, and say whether the demo is running in the simulator or on the iPhone. Do not claim airplane-mode physical-device validation, model calibration, live domain reputation, or confirmed delivery.
 
 ## Demonstration claim
 
