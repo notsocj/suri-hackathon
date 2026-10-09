@@ -102,12 +102,13 @@ struct AutomationSettingsView: View {
             Text("Apple only lets you create this trigger yourself, in the Shortcuts app.").font(.subheadline).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 10) {
                 instruction("Shortcuts → Automation → + → Message")
-                instruction("Tap Message Contains and enter a common letter, such as a. iOS won't continue until a sender or some text is set")
-                instruction("Choose Run Immediately, then add Suri → Check Message Locally")
-                instruction("Tap its Message text field and choose Shortcut Input from the row above the keyboard")
+                instruction("Message Contains: enter a. Choose Run Immediately, then Next")
+                instruction("Tap Create New Shortcut, search Check Message, and tap Check Message Locally")
+                instruction("Tap Message text, then Select Variable, then Shortcut Input. Don't choose Ask Each Time")
+                instruction("Tap the blue checkmark to save")
             }
             actionMock
-            Text("If Shortcuts ever asks you to type a message, Message text isn't connected yet. A letter checks most texts, but not one without it, like a link or number on its own. For wider coverage, add a second automation using e. Repeats are skipped.")
+            Text("If Shortcuts ever asks you to type a message, Message text is set to Ask Each Time or empty. A letter checks most texts, but not one without it, like a link or number on its own. For wider coverage, add a second automation using e. Repeats are skipped.")
                 .font(.footnote).foregroundStyle(.secondary)
             Button("Open Shortcuts") { if let url = URL(string: "shortcuts://") { openURL(url) } }
                 .buttonStyle(SuriButtonStyle())
