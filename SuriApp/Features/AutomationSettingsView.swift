@@ -103,10 +103,10 @@ struct AutomationSettingsView: View {
 
     private var connectStep: some View {
         SetupStep(number: 4, title: "Connect incoming messages", done: lastCheck != nil) {
-            Text("Apple only lets you create this trigger yourself. We'll walk you through it, one tap at a time.")
+            Text("Apple only lets you create this trigger yourself. Here's the whole recipe on one page.")
                 .font(.subheadline).foregroundStyle(.secondary)
             Button { walkthrough = true } label: {
-                Label { Text(lastCheck == nil ? "Start guided setup" : "Set up again") } icon: { Image(systemName: "list.number") }
+                Label { Text(lastCheck == nil ? "Show me how" : "Show the steps again") } icon: { Image(systemName: "list.number") }
             }.buttonStyle(SuriButtonStyle(filled: lastCheck == nil)).accessibilityIdentifier("start-walkthrough")
             DisclosureGroup {
                 Text("Open the automation in Shortcuts and tap Check Message Locally. Tap Message text, then Select Variable, then Shortcut Input. If you see an Ask Each Time token, tap it and choose Clear Variable. Save with the blue checkmark, then Done.")
@@ -164,66 +164,81 @@ struct AutomationSettingsView: View {
     }
 }
 
-/// One action per screen. Every instruction here was walked through on the iOS 26.5 simulator.
+/// The whole recipe on one page. Every instruction was walked through on the iOS 26.5 simulator.
 struct AutomationWalkthroughView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
-    @State private var index = 0
 
-    private struct Page {
-        let symbol: String, title: String, detail: String
-        var opensShortcuts = false, showsWiring = false
+    private struct Item: Identifiable {
+        let id: Int
+        let title: String
+        let detail: String
+        var avoid: String? = nil
+        var showsWiring = false
     }
-    private let pages: [Page] = [
-        .init(symbol: "arrow.up.forward.app", title: "Open Shortcuts", detail: "Tap Automation at the bottom, then + at the top right.", opensShortcuts: true),
-        .init(symbol: "message", title: "Choose Message", detail: "In the list of triggers, tap Message."),
-        .init(symbol: "textformat", title: "Type a under Message Contains", detail: "Tap Message Contains, type the letter a, then tap Done. iOS won't continue while it's empty, and a common letter matches most texts."),
-        .init(symbol: "bolt.fill", title: "Choose Run Immediately", detail: "Tap Run Immediately so it shows a tick, then tap Next at the top right."),
-        .init(symbol: "plus.square.on.square", title: "Tap Create New Shortcut", detail: "Tap the grey Create New Shortcut card at the top. Don't pick Suri from the list below it, because that hides the field you need."),
-        .init(symbol: "magnifyingglass", title: "Add Check Message Locally", detail: "In the search bar, type Check Message, then tap Check Message Locally (the Suri icon)."),
-        .init(symbol: "link", title: "Connect the message", detail: "Tap Message text, then Select Variable, then Shortcut Input. Never choose Ask Each Time: it makes Shortcuts ask you to type.", showsWiring: true),
-        .init(symbol: "checkmark.circle", title: "Save twice", detail: "Tap the blue checkmark at the top right. On the next screen, tap Done at the top right. Tap Done, not the ✕."),
-        .init(symbol: "bell.badge", title: "Test it", detail: "Text this phone from another number. Setup turns to Connected when Suri checks it, and a risky text sends you a private warning.", opensShortcuts: false),
+    private let items: [Item] = [
+        .init(id: 1, title: "Open Shortcuts", detail: "Tap Automation at the bottom, then + at the top right."),
+        .init(id: 2, title: "Choose Message", detail: "Tap Message in the list of triggers."),
+        .init(id: 3, title: "Message Contains: type a", detail: "Tap Message Contains, type the letter a, tap Done. iOS won't continue while it's empty."),
+        .init(id: 4, title: "Choose Run Immediately", detail: "Make sure it shows a tick, then tap Next at the top right."),
+        .init(id: 5, title: "Tap Create New Shortcut", detail: "It's the grey card at the top.", avoid: "Don't pick Suri from the list below it. That hides the field you need."),
+        .init(id: 6, title: "Add Check Message Locally", detail: "In the search bar type Check Message, then tap Check Message Locally."),
+        .init(id: 7, title: "Connect the message", detail: "Tap Message text, then Select Variable, then Shortcut Input.", avoid: "Never choose Ask Each Time. It makes Shortcuts ask you to type.", showsWiring: true),
+        .init(id: 8, title: "Save twice", detail: "Tap the blue checkmark at the top right. On the next screen tap Done at the top right.", avoid: "Tap Done, not the ✕."),
     ]
-    private var last: Bool { index == pages.count - 1 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Step \(index + 1) of \(pages.count)").font(.subheadline.weight(.bold)).foregroundStyle(.secondary)
-                ProgressView(value: Double(index + 1), total: Double(pages.count)).tint(SuriTheme.teal)
-            }.padding(.horizontal, 24).padding(.top, 8)
-            TabView(selection: $index) {
-                ForEach(pages.indices, id: \.self) { i in pageView(pages[i]).tag(i) }
-            }.tabViewStyle(.page(indexDisplayMode: .never))
-            HStack(spacing: 12) {
-                if index > 0 {
-                    Button("Back") { withAnimation { index -= 1 } }.buttonStyle(SuriButtonStyle(filled: false))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Connect incoming messages").font(.title.weight(.heavy)).tracking(-0.4)
+                    Text("Do these eight things in the Shortcuts app. It takes about two minutes.")
+                        .font(.body.weight(.medium)).foregroundStyle(.secondary)
                 }
-                Button(last ? "Finish" : "Next") { if last { dismiss() } else { withAnimation { index += 1 } } }
-                    .buttonStyle(SuriButtonStyle()).accessibilityIdentifier("walkthrough-next")
-            }.padding(.horizontal, 24).padding(.vertical, 12)
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(items) { item in
+                        row(item)
+                        if item.id != items.count { Divider().padding(.leading, 52) }
+                    }
+                }.padding(.vertical, 6).suriCard()
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "bell.badge").font(.title3.weight(.semibold)).foregroundStyle(SuriTheme.teal).frame(width: 28)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Then test it").font(.headline.weight(.bold))
+                        Text("Text this phone from another number. Setup turns to Connected here once Suri has checked it, and a risky text sends you a private warning.")
+                            .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                    }
+                }.padding(.horizontal, 4)
+            }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 24)
         }
         .background(SuriTheme.background)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Button { if let url = URL(string: "shortcuts://") { openURL(url) } } label: {
+                Label { Text("Open Shortcuts") } icon: { Image(systemName: "arrow.up.forward.app") }
+            }
+            .buttonStyle(SuriButtonStyle()).accessibilityIdentifier("walkthrough-open-shortcuts")
+            .padding(.horizontal, 24).padding(.vertical, 10).frame(maxWidth: .infinity).background(SuriTheme.background)
+        }
         .navigationTitle("Guided setup").navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
     }
 
-    private func pageView(_ page: Page) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                Image(systemName: page.symbol).font(.system(size: 30, weight: .semibold)).foregroundStyle(SuriTheme.teal)
-                    .frame(width: 68, height: 68).background(SuriTheme.teal.opacity(0.12), in: Circle()).accessibilityHidden(true)
-                Text(page.title).font(.title.weight(.heavy)).tracking(-0.4).accessibilityAddTraits(.isHeader)
-                Text(page.detail).font(.title3.weight(.medium)).foregroundStyle(.secondary)
-                if page.showsWiring { WiringMock() }
-                if page.opensShortcuts {
-                    Button { if let url = URL(string: "shortcuts://") { openURL(url) } } label: {
-                        Label { Text("Open Shortcuts") } icon: { Image(systemName: "arrow.up.forward.app") }
-                    }.buttonStyle(SuriButtonStyle()).accessibilityIdentifier("walkthrough-open-shortcuts")
+    private func row(_ item: Item) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            Text("\(item.id)").font(.subheadline.weight(.heavy)).foregroundStyle(SuriTheme.teal)
+                .frame(width: 30, height: 30).background(SuriTheme.teal.opacity(0.12), in: Circle()).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.title).font(.headline.weight(.bold))
+                Text(item.detail).font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                if item.showsWiring { WiringMock().padding(.top, 2) }
+                if let avoid = item.avoid {
+                    Label { Text(avoid).font(.subheadline.weight(.semibold)) } icon: { Image(systemName: "xmark.circle.fill") }
+                        .foregroundStyle(SuriTheme.warning)
                 }
-            }.padding(.horizontal, 24).padding(.top, 20).frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
+        .padding(.horizontal, 14).padding(.vertical, 14).frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 
