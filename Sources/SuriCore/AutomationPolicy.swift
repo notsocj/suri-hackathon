@@ -12,6 +12,17 @@ public enum AutomationPolicy {
         return Warning(title: "Suri: Warning signs found",
                        body: "Pause before acting. Open Suri to review this local check and verify independently.")
     }
+    public enum InputIssue: Equatable, Sendable { case tooShort, looksLikeSender }
+    /// Cheap, deterministic screening before any model work. A Shortcut that is wired to the sender instead of
+    /// the message body passes a phone number; very short texts carry too little to assess.
+    public static func inputIssue(for text: String) -> InputIssue? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phoneLike = trimmed.count <= 20 && trimmed.filter(\.isNumber).count >= 5
+            && trimmed.allSatisfy { $0.isNumber || "+-() ".contains($0) }
+        if phoneLike { return .looksLikeSender }
+        if trimmed.count < 10 { return .tooShort }
+        return nil
+    }
     public static func summary(for result: ModelAssessment) -> String {
         guard result.quality == .complete else { return "Insufficient content. Review the full message before acting." }
         return switch result.risk {

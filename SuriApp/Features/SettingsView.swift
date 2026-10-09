@@ -22,6 +22,11 @@ struct SettingsView: View {
                 Text("Downloaded once from Hugging Face. Messages are never part of the download, and checks then work without internet. Accuracy on Filipino and Taglish hasn't been measured yet.")
             }
             Section {
+                NavigationLink("Message automation") { AutomationSettingsView() }
+            } header: { Text("Automatic checking") } footer: {
+                Text("Check incoming texts on this phone and get a private warning when one looks risky.")
+            }
+            Section {
                 Toggle("Online guidance", isOn: Binding(get: { model.cloudEnabled }, set: { enabled in
                     if enabled { consent = true } else { model.cloudEnabled = false }
                 }))
@@ -39,9 +44,6 @@ struct SettingsView: View {
             Section {
                 NavigationLink("About and licenses") { AboutView() }
             }
-            Section {
-                NavigationLink("Message automation") { AutomationSettingsView() }
-            } header: { Text("Shortcuts and warnings") }
         }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
             .alert("Turn on online guidance?", isPresented: $consent) {

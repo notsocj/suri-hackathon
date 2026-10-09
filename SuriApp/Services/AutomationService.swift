@@ -12,11 +12,27 @@ import SuriCore
         UserDefaults.standard.set(UUID().uuidString, forKey: "shortcutsConsent")
         AutomationService.shared.resetRecentChecks()
         if !enabled {
+            UserDefaults.standard.removeObject(forKey: "automationLastCheck")
             AutomationService.shared.cancel()
             UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         }
     }
     static let historyChanged = Notification.Name("suri.automationHistoryChanged")
+
+    // Only when and what category: never the message, sender or evidence. Lets setup show "Connected".
+    private static let lastCheckKey = "automationLastCheck"
+    static let skippedOutcome = "skipped"
+    static var lastCheck: (date: Date, outcome: String)? {
+        let parts = (UserDefaults.standard.string(forKey: lastCheckKey) ?? "").split(separator: "|", maxSplits: 1).map(String.init)
+        guard parts.count == 2, let seconds = Double(parts[0]) else { return nil }
+        return (Date(timeIntervalSince1970: seconds), parts[1])
+    }
+    static func recordCheck(outcome: String) {
+        UserDefaults.standard.set("\(Date().timeIntervalSince1970)|\(outcome)", forKey: lastCheckKey)
+    }
+    static func outcomeTitle(_ outcome: String) -> String {
+        outcome == skippedOutcome ? "Message too short to check" : (RiskCategory(rawValue: outcome)?.title ?? "Checked")
+    }
 }
 
 @MainActor final class AutomationService {
@@ -30,8 +46,17 @@ import SuriCore
     func cancel() { active?.cancel() }
     func resetRecentChecks() { ledger.clearCompleted() }
 
-    func check(_ text: String) async throws -> String {
+    enum Source { case shortcut, test }
+
+    func check(_ text: String, source: Source = .shortcut) async throws -> String {
         guard AutomationPreferences.enabled else { throw AutomationError.disabled }
+        switch AutomationPolicy.inputIssue(for: text) {
+        case .looksLikeSender: throw AutomationError.senderInstead
+        case .tooShort:
+            if source == .shortcut { AutomationPreferences.recordCheck(outcome: AutomationPreferences.skippedOutcome) }
+            return "Too short to check. No warning."
+        case nil: break
+        }
         try AssessmentValidator.validateInput(text)
         guard ModelFiles.isInstalled else { throw ModelError.missing }
         let fingerprint = SHA256.hash(data: Data((salt + text).utf8)).map { String(format: "%02x", $0) }.joined()
@@ -81,14 +106,16 @@ import SuriCore
             }
         }
         succeeded = true
+        if source == .shortcut { AutomationPreferences.recordCheck(outcome: result.result.risk.rawValue) }
         return summary
     }
 }
 
-nonisolated enum AutomationError: Error, LocalizedError {
-    case disabled, busy
+nonisolated enum AutomationError: Error, LocalizedError, Equatable {
+    case disabled, busy, senderInstead
     var errorDescription: String? {
         switch self {
+        case .senderInstead: "That looks like a phone number, not the message. In the automation, set Message text to the message body from Shortcut Input."
         case .disabled: "Shortcuts checks are off. Open Suri Settings, then Message automation, to allow them."
         case .busy: "Another automated check is running. This message was not checked; try again when it finishes."
         }

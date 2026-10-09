@@ -10,17 +10,17 @@ The app action does not install an incoming-message trigger or read an inbox. Th
 
 ## Setup on the iPhone
 
-Build 4 adds Apple's native Shortcuts button to open Suri's preconfigured App Shortcut page. The checking action is included with the app; a separate signed file or iCloud share link is not required. Its text parameter connects to preceding action output where Shortcuts supports that connection, but verify that the received message body is the value passed. The Message trigger remains specific to each device and must be configured by the user. Sharing a normal shortcut does not establish an incoming-message trigger on the recipient's iOS 26 phone. [Apple App Shortcuts](https://developer.apple.com/documentation/appintents/app-shortcuts?changes=_4__8), [native Shortcuts button](https://developer.apple.com/documentation/appintents/shortcutslink?language=objc__5), [device-specific automations](https://support.apple.com/en-gb/guide/shortcuts/apd690170742/9.0/ios/26).
+Open **Set up** on the Check tab (or Settings → Message automation). One checklist covers everything Suri can do for you; only the trigger itself must be created by hand, because iOS offers apps no way to create a Message automation.
 
-1. Install the TestFlight build containing this action. Complete the model download first.
-2. In Suri Settings, open **Message automation**, enable **Allow Shortcuts checks**, and tap **Allow warning notifications**. If previously denied, enable Suri alerts in iPhone Settings → Notifications.
-3. Tap the native Shortcuts button under **Open the ready-made shortcut** to find Suri's **Check Message Locally** action. No separate download is needed. For a manual test, use a **Text** action containing synthetic input followed by the Suri action; confirm the text parameter is connected to that output.
-4. Create a **Message** personal automation. Begin with the second phone's sender, or a Message Contains filter supported by the phone. Choose **Run Immediately** if offered.
-5. Add **Check Message Locally**. Set **Message text** to the received message **body** from **Shortcut Input**. Use Get Text from Input if conversion is needed. Do not pass just the sender, notification title, or a fixed example.
-6. Send a synthetic message from the other phone, and verify that the received body—not a cached example—is checked. Then test while the screen is locked and while Suri is not open. Disable Wi-Fi to verify the analysis has no cloud dependency; receiving SMS still needs carrier connectivity.
-7. Send a benign OTP delivery and an urgent appointment reminder. They should not produce unsupported warning alerts. Send a duplicate warning message; a repeated identical body is suppressed for five minutes during the same app process.
+1. **Turn on checks and warnings.** One tap enables Shortcuts checks and asks for notification permission. If notifications were denied before, the step links to iPhone Settings.
+2. **Offline checker.** Shows ready, or downloads the 1.3 GB model with progress.
+3. **Run a test.** Sends a sample scam message through the same action Shortcuts uses and fires the real warning notification, proving the model, the action and notifications work before touching Shortcuts.
+4. **Connect incoming messages.** In Shortcuts: Automation → + → Message; leave Sender and Message Contains empty to try every text, or pick a sender; choose Run Immediately; add Suri → **Check Message Locally**; set **Message text** to **Shortcut Input**. The step shows this wiring and opens Shortcuts. Apple's native button opens Suri's ready-made action page; no file or iCloud link is needed.
+5. **Confirm it works.** After a text arrives and is checked, the step turns to **Connected** and shows when the last text was checked and the result category. Suri stores only that time and category, never the message, sender or evidence, and clears it when checks are turned off.
 
-Apple documents Message automation filters for **Sender** and **Message Contains**. Configure only the coverage offered by the phone. A filtered trigger is not proof that all messages are monitored. Automations, permissions, truncation, battery/resource restrictions, and system termination can prevent execution. If Shortcuts reports an error, treat that message as **not checked** and use manual import.
+Guards: if the action receives only a phone number (the Shortcut was wired to the sender), it fails with a message explaining the fix instead of checking the wrong thing. Texts under ten characters are skipped without model work and still count as proof the trigger fired. A repeated identical body is suppressed for five minutes during the same app process.
+
+Apple documents Message automation filters for **Sender** and **Message Contains**. Whether leaving both empty covers every incoming message, how long a locked-phone run may take, and whether iOS keeps a 1.28 GB model resident in a background Shortcut run are **unverified on the physical phone**. A filtered trigger is not proof that all messages are monitored. If Shortcuts reports an error, treat that message as **not checked** and use manual import.
 
 ## Messenger and other chat apps
 

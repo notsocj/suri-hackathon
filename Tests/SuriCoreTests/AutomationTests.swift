@@ -45,4 +45,21 @@ struct AutomationTests {
         ledger.finish("one", succeeded: false, now: now)
         #expect(ledger.begin("one", now: now) == .accepted)
     }
+    @Test func senderInsteadOfMessageIsDetected() {
+        for sender in ["09171234567", "+63 917 123 4567", "(02) 8123-4567", "123456"] {
+            #expect(AutomationPolicy.inputIssue(for: sender) == .looksLikeSender)
+        }
+    }
+    @Test func veryShortTextsAreSkippedWithoutModelWork() {
+        for text in ["", "   ", "ok", "Salamat!", "GCASH"] {
+            #expect(AutomationPolicy.inputIssue(for: text) == .tooShort)
+        }
+    }
+    @Test func realMessagesAreNeverScreenedOut() {
+        let messages = ["Your login code is 752184. Never share it.",
+                        "Reply with your OTP to unlock your account.",
+                        "Huwag ibigay ang code. Bukas ang appointment mo, 4 PM.",
+                        "Call 09171234567 now to claim your prize"]
+        for text in messages { #expect(AutomationPolicy.inputIssue(for: text) == nil) }
+    }
 }

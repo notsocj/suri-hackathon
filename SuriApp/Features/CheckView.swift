@@ -9,6 +9,9 @@ struct CheckView: View {
     @State private var importFile = false
     @State private var help = false
     @State private var settings = false
+    @State private var automation = false
+    @State private var automationTick = 0
+    @AppStorage("automationCardDismissed") private var automationCardDismissed = false
     @FocusState private var editing: Bool
 
     private var hasText: Bool { !model.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -22,6 +25,7 @@ struct CheckView: View {
                     ResultView(assessment: result, askFamily: { help = true }, checkAnother: { model.clearInput() })
                 } else {
                     header
+                    if model.text.isEmpty { automationBanner }
                     if !model.modelInstalled { setupBanner }
                     phaseContent
                     captureButtons
@@ -63,6 +67,9 @@ struct CheckView: View {
         }
         .sheet(isPresented: $help) { NavigationStack { FamilyHelpView(assessment: model.assessment) } }
         .sheet(isPresented: $settings) { NavigationStack { SettingsView() } }
+        .sheet(isPresented: $automation, onDismiss: { automationTick += 1 }) {
+            NavigationStack { AutomationSettingsView(showsDone: true) }
+        }
         .onChange(of: model.selectedTab) { _, _ in editing = false }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in importSharedContent() }
         .task { importSharedContent() }
@@ -185,6 +192,22 @@ struct CheckView: View {
                     Button { model.viewHistory(item) } label: { HistoryRow(assessment: item) }.buttonStyle(.plain)
                 }
             }
+        }
+    }
+    /// Sits right under the header so it can't be missed. Hidden once the automation has checked a message, or on "not now".
+    @ViewBuilder private var automationBanner: some View {
+        let _ = automationTick
+        if !automationCardDismissed && AutomationPreferences.lastCheck == nil {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Check incoming texts automatically").font(.headline.weight(.bold))
+                Text("Suri warns you when a new message looks risky. About two minutes to set up.")
+                    .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    Button("Set up") { automation = true }.buttonStyle(SuriButtonStyle()).frame(maxWidth: 170)
+                        .accessibilityIdentifier("set-up-automation")
+                    Button("Not now") { automationCardDismissed = true }.buttonStyle(SuriLinkStyle()).padding(.horizontal, 10)
+                }
+            }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
         }
     }
     private func importSharedContent() {

@@ -1,73 +1,214 @@
 import SwiftUI
 import UserNotifications
 import AppIntents
+import SuriCore
 
+/// One guided checklist. iOS gives apps no way to create a Message automation, so the only step Suri cannot do
+/// for the user is the trigger itself; every other step is a single tap, and the last one confirms it fired.
 struct AutomationSettingsView: View {
+    var showsDone = false
     @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
     @State private var enabled = AutomationPreferences.enabled
-    @State private var permission = "Checking permission…"
-    @State private var error: String?
+    @State private var permission: UNAuthorizationStatus = .notDetermined
+    @State private var lastCheck = AutomationPreferences.lastCheck
+    @State private var testing = false
+    @State private var testResult: String?
+    @State private var testPassed = false
+
+    private static let sample = "Para hindi ma-freeze ang account mo, ibigay ang OTP sa akin ngayon. Ako raw ang support agent."
+    private var notificationsAllowed: Bool { [.authorized, .provisional, .ephemeral].contains(permission) }
+    private var turnedOn: Bool { enabled && notificationsAllowed }
+    private var ready: Bool { turnedOn && model.modelInstalled }
 
     var body: some View {
-        Form {
-            Section {
-                Text("Suri’s checking shortcut comes with the app. Open it below, then connect it to a Message trigger once.")
-                    .font(.subheadline).foregroundStyle(.secondary)
-            }
-            Section {
-                Text(model.modelInstalled ? "Local model ready" : "Download the model in Settings first")
-                Toggle("Allow Shortcuts checks", isOn: Binding(get: { enabled }, set: {
-                    enabled = $0; AutomationPreferences.setEnabled($0)
-                })).accessibilityIdentifier("allow-shortcuts-checks")
-                Button("Allow warning notifications") {
-                    Task {
-                        do {
-                            _ = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
-                            AutomationService.shared.resetRecentChecks()
-                            await refreshPermission()
-                        } catch { self.error = "Check iPhone Settings → Notifications → Suri to allow warnings." }
-                    }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Check incoming texts").font(.title.weight(.heavy)).tracking(-0.4)
+                    Text("Suri checks each new message on this phone and warns you when one looks risky. Setup takes about two minutes.")
+                        .foregroundStyle(.secondary)
+                }.padding(.bottom, 6)
+                turnOnStep
+                modelStep
+                testStep
+                connectStep
+                confirmStep
+                NavigationLink { AutomationCoverageView() } label: {
+                    Text("What gets checked, and privacy").font(.subheadline.weight(.semibold)).foregroundStyle(SuriTheme.teal)
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                Text(permission).font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("1. Allow local checks and warnings") } footer: {
-                Text("This lets Shortcuts pass message text to Suri. It does not give Suri access to your inbox.")
-            }
-            Section {
-                ShortcutsLink(action: { SuriShortcuts.updateAppShortcutParameters() })
-                    .shortcutsLinkStyle(.automatic)
-                    .accessibilityIdentifier("open-suri-shortcuts")
-                    .disabled(!enabled || !model.modelInstalled)
-                Text("Look for Check Message Locally on Suri’s page. No separate download or iCloud link is needed.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("2. Open the ready-made shortcut") }
-            Section {
-                Text("Shortcuts → Automation → + → Message").font(.headline)
-                Text("Choose a sender or text filter, select Run Immediately if offered, and use Suri’s Check Message Locally action.")
-                Text("Message text must use the received message body from Shortcut Input. Confirm the input before saving.")
-                    .font(.subheadline).foregroundStyle(.secondary)
-                Button("Open Shortcuts") { openURL(URL(string: "shortcuts://")!) }
-            } header: { Text("3. Connect incoming messages") } footer: {
-                Text("Apple keeps this trigger on each phone. Suri cannot silently install it or select which messages you monitor.")
-            }
-            Section {
-                Text("Send a synthetic test message from the selected sender. Start unlocked, then try while locked. If Shortcuts reports an error, the message was not checked.")
-                NavigationLink("Coverage and privacy") { AutomationCoverageView() }
-            } header: { Text("Check your setup") }
+            }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 24)
         }
+        .background(SuriTheme.background)
         .navigationTitle("Message automation").navigationBarTitleDisplayMode(.inline)
-        .task { await refreshPermission() }
-        .alert("Notifications", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
-            Button("OK") { error = nil }
-        } message: { Text(error ?? "") }
+        .toolbar { if showsDone { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } } }
+        .task { await refresh() }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await refresh() } } }
     }
-    private func refreshPermission() async {
-        let status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
-        switch status {
-        case .authorized, .provisional, .ephemeral: permission = "Notification permission allowed"
-        case .denied: permission = "Off. Enable Suri in iPhone Settings → Notifications."
-        default: permission = "Notification permission not requested"
+
+    // MARK: Steps
+
+    private var turnOnStep: some View {
+        SetupStep(number: 1, title: "Turn on checks and warnings", done: turnedOn) {
+            if turnedOn {
+                Text("Shortcuts can send messages to Suri, and Suri can warn you.").font(.subheadline).foregroundStyle(.secondary)
+                Button("Turn off") { enabled = false; AutomationPreferences.setEnabled(false); lastCheck = nil; testPassed = false; testResult = nil }
+                    .buttonStyle(SuriLinkStyle()).accessibilityIdentifier("allow-shortcuts-checks")
+            } else if permission == .denied && enabled {
+                Text("Notifications are off for Suri, so warnings can't reach you.").font(.subheadline).foregroundStyle(.secondary)
+                Button("Open iPhone Settings") { if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) } }
+                    .buttonStyle(SuriButtonStyle()).accessibilityIdentifier("open-iphone-settings")
+            } else {
+                Text("This lets Shortcuts pass message text to Suri and lets Suri send you a private warning. It does not give Suri access to your inbox.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Button("Turn on") { Task { await turnOn() } }.buttonStyle(SuriButtonStyle()).accessibilityIdentifier("allow-shortcuts-checks")
+            }
         }
+    }
+
+    private var modelStep: some View {
+        SetupStep(number: 2, title: model.modelInstalled ? "Offline checker ready" : "Get the offline checker", done: model.modelInstalled) {
+            if !model.modelInstalled {
+                Text("A one-time 1.3 GB download. After it, checks run on this phone without internet.").font(.subheadline).foregroundStyle(.secondary)
+                if model.installing {
+                    if let fraction = model.downloadFraction { ProgressView(value: fraction) } else { ProgressView() }
+                    Text(model.modelStatus).font(.footnote).foregroundStyle(.secondary)
+                } else {
+                    Button(model.downloadButtonTitle) { model.installModel() }.buttonStyle(SuriButtonStyle())
+                }
+            }
+        }
+    }
+
+    private var testStep: some View {
+        SetupStep(number: 3, title: "Run a test", done: testPassed, locked: !ready) {
+            Text("Checks a sample scam message with the same action Shortcuts will use, and sends you the real warning.")
+                .font(.subheadline).foregroundStyle(.secondary)
+            if testing {
+                HStack(spacing: 10) { ProgressView(); Text("Checking on this device…").font(.subheadline.weight(.semibold)) }
+            } else {
+                Button(testPassed ? "Run again" : "Run test") { runTest() }
+                    .buttonStyle(SuriButtonStyle(filled: !testPassed)).disabled(!ready).accessibilityIdentifier("run-automation-test")
+            }
+            if let testResult { Text(testResult).font(.footnote).foregroundStyle(testPassed ? SuriTheme.ink : SuriTheme.warning) }
+        }
+    }
+
+    private var connectStep: some View {
+        SetupStep(number: 4, title: "Connect incoming messages", done: lastCheck != nil) {
+            Text("Apple only lets you create this trigger yourself, in the Shortcuts app.").font(.subheadline).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 10) {
+                instruction("Shortcuts → Automation → + → Message")
+                instruction("Leave Sender and Message Contains empty to cover every text, or pick a sender")
+                instruction("Choose Run Immediately, then add Suri → Check Message Locally")
+                instruction("Set its Message text to Shortcut Input")
+            }
+            actionMock
+            Button("Open Shortcuts") { if let url = URL(string: "shortcuts://") { openURL(url) } }
+                .buttonStyle(SuriButtonStyle())
+            ShortcutsLink(action: { SuriShortcuts.updateAppShortcutParameters() })
+                .shortcutsLinkStyle(.automatic).accessibilityIdentifier("open-suri-shortcuts")
+        }
+    }
+
+    private var confirmStep: some View {
+        SetupStep(number: 5, title: lastCheck == nil ? "Confirm it works" : "Connected", done: lastCheck != nil) {
+            if let lastCheck {
+                Text("Last text checked \(lastCheck.date.formatted(.relative(presentation: .named))): \(AutomationPreferences.outcomeTitle(lastCheck.outcome)).")
+                    .font(.subheadline)
+                Text("Suri keeps only this time and result, never the message.").font(.footnote).foregroundStyle(.secondary)
+            } else {
+                Text("Send a text to this phone from another number. When it's checked, this turns to Connected.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Text("If Shortcuts shows an error, that text was not checked.").font(.footnote).foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    // MARK: Pieces
+
+    private func instruction(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Circle().fill(SuriTheme.teal).frame(width: 6, height: 6).padding(.top, 8).accessibilityHidden(true)
+            Text(text).font(.subheadline)
+        }
+    }
+
+    /// Shows the one wiring that matters: the action's Message text must be the Shortcut Input.
+    private var actionMock: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                SuriMark(size: 22).foregroundStyle(SuriTheme.teal)
+                Text("Check Message Locally").font(.subheadline.weight(.bold))
+            }
+            HStack(spacing: 8) {
+                Text("Message text").font(.footnote).foregroundStyle(.secondary)
+                Text("Shortcut Input").font(.footnote.weight(.bold)).foregroundStyle(Color("ActionText"))
+                    .padding(.horizontal, 10).padding(.vertical, 4).background(SuriTheme.teal, in: Capsule())
+            }
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(SuriTheme.background, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.primary.opacity(0.08)))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Check Message Locally, with Message text set to Shortcut Input")
+    }
+
+    // MARK: Actions
+
+    private func turnOn() async {
+        AutomationPreferences.setEnabled(true); enabled = true
+        _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
+        AutomationService.shared.resetRecentChecks()
+        await refresh()
+    }
+
+    private func runTest() {
+        testing = true; testResult = nil
+        Task {
+            AutomationService.shared.resetRecentChecks()
+            do { testResult = try await AutomationService.shared.check(Self.sample, source: .test); testPassed = true }
+            catch { testResult = error.localizedDescription; testPassed = false }
+            testing = false
+        }
+    }
+
+    private func refresh() async {
+        enabled = AutomationPreferences.enabled
+        lastCheck = AutomationPreferences.lastCheck
+        permission = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
+    }
+}
+
+private struct SetupStep<Content: View>: View {
+    let number: Int
+    let title: String
+    let done: Bool
+    var locked = false
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                Circle().fill(done ? SuriTheme.teal : SuriTheme.teal.opacity(0.12))
+                if done {
+                    Image(systemName: "checkmark").font(.footnote.weight(.heavy)).foregroundStyle(Color("ActionText"))
+                } else {
+                    Text("\(number)").font(.subheadline.weight(.bold)).foregroundStyle(SuriTheme.teal)
+                }
+            }.frame(width: 32, height: 32).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 10) {
+                Text(title).font(.headline.weight(.bold)).accessibilityAddTraits(.isHeader)
+                content
+            }
+        }
+        .padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
+        .opacity(locked ? 0.55 : 1)
+        .accessibilityElement(children: .contain)
+        .accessibilityValue(done ? "Done" : "")
     }
 }
 

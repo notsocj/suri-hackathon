@@ -77,6 +77,8 @@ import UIKit
         defaults.set(UUID().uuidString, forKey: "shortcutsConsent")
         defaults.set(false, forKey: "historyEnabled")
         defaults.set(true, forKey: "cloudEnabled") // The intent's path must remain independent of this setting.
+        defaults.removeObject(forKey: "automationLastCheck")
+        defer { defaults.removeObject(forKey: "automationLastCheck") }
         let intent = CheckMessageLocallyIntent()
         intent.message = "Your login code is 752184. Never give this code to another person. Use your usual app if this login was unexpected."
         let result = try await intent.perform()
@@ -86,5 +88,32 @@ import UIKit
         let repeated = try await AutomationService.shared.check(intent.message)
         XCTAssertTrue(repeated.contains("No duplicate warning"))
         XCTAssertTrue(defaults.bool(forKey: "cloudEnabled"))
+        // A real Shortcuts run is what flips setup to "Connected": only the time and category are kept.
+        let last = try XCTUnwrap(AutomationPreferences.lastCheck)
+        XCTAssertLessThan(Date().timeIntervalSince(last.date), 300)
+        XCTAssertFalse(last.outcome.contains("752184"))
+    }
+    func testShortcutsGuardsAgainstWrongInputWithoutModelWork() async throws {
+        let defaults = UserDefaults.standard
+        let keys = [AutomationPreferences.enabledKey, "shortcutsConsent", "automationLastCheck"]
+        let previous = keys.map { defaults.object(forKey: $0) }
+        defer {
+            for (key, value) in zip(keys, previous) {
+                if let value { defaults.set(value, forKey: key) } else { defaults.removeObject(forKey: key) }
+            }
+        }
+        defaults.set(true, forKey: AutomationPreferences.enabledKey)
+        defaults.set(UUID().uuidString, forKey: "shortcutsConsent")
+        defaults.removeObject(forKey: "automationLastCheck")
+        // The Shortcut was wired to the sender: say so, and do not pretend a message was checked.
+        do {
+            _ = try await AutomationService.shared.check("09171234567")
+            XCTFail("A bare phone number is not a message")
+        } catch { XCTAssertEqual(error as? AutomationError, .senderInstead) }
+        XCTAssertNil(AutomationPreferences.lastCheck)
+        // Very short texts are skipped quietly, and still prove the trigger fired.
+        let skipped = try await AutomationService.shared.check("ok")
+        XCTAssertTrue(skipped.contains("Too short"))
+        XCTAssertEqual(AutomationPreferences.lastCheck?.outcome, AutomationPreferences.skippedOutcome)
     }
 }
