@@ -9,7 +9,13 @@
 - Internal TestFlight group: **Suri Demo**. No public link or external review submission is configured.
 - ASC credentials are stored in macOS Keychain. Private signing files remain outside the repository. Do not commit API keys, private signing keys, PKCS#12 identities, or passwords.
 
-## Latest update — build 7
+## Latest update — build 8
+
+Version **1.0.0 (8)** was archived from source commit `5c62c89` (build number and team passed to Xcode; project file unchanged) and exported with the existing App Store profiles and the distribution identity in a temporary keychain removed afterward. The **2,795,539-byte** IPA is at ignored `.build/Release/Suri-8.ipa`. Both targets verified as Apple Distribution signed with valid signatures, the `group.ph.suri.app` App Group, `get-task-allow` false, build number 8, and Message text `inputConnectionBehavior = 0`. Apple completed processing with **VALID** status for build `6fb3c969-dade-4f0e-b319-4229bd004afb`, assigned to the internal **Suri Demo** group without notifying testers or submitting for review.
+
+This build addresses the build 7 failure where Shortcuts reported "unknown error" on a longer incoming text although Suri had saved the result: the action answers within 20 seconds while the check finishes under a background-time request, notification errors no longer fail the run, and setup shows the last automatic run's stage and timing. Results gained a back button and an "Incoming text" label when opened from a Suri notification. Before archiving: 24 core, 9 iOS integration, and 4 simulator UI checks passed. **Unverified on the phone:** whether 20 seconds is within Shortcuts' limit, whether iOS grants enough background time to finish, and locked-phone behaviour.
+
+## Previous update — build 7
 
 Version **1.0.0 (7)** was archived from source commit `544b28d` with `CURRENT_PROJECT_VERSION=7` and `DEVELOPMENT_TEAM` passed to Xcode (project file unchanged) and exported with the existing App Store profiles and the distribution identity in a temporary keychain removed afterward. The **2,772,684-byte** IPA is at ignored `.build/Release/Suri-7.ipa`. Both targets verified as Apple Distribution signed with valid signatures, the `group.ph.suri.app` App Group, `get-task-allow` false, and build number 7; the extracted metadata still shows `inputConnectionBehavior = 0` for Message text. Apple completed processing with **VALID** status for build `a2063c36-f0e1-476c-8799-d94aa5736d7d`, and the upload command assigned it to the internal **Suri Demo** group without notifying testers or submitting for review.
 
