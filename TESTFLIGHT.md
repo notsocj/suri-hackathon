@@ -9,13 +9,19 @@
 - Internal TestFlight group: **Suri Demo**. No public link or external review submission is configured.
 - ASC credentials are stored in macOS Keychain. Private signing files remain outside the repository. Do not commit API keys, private signing keys, PKCS#12 identities, or passwords.
 
-## Latest update — build 5
+## Latest update — build 6
+
+Version **1.0.0 (6)** was archived from source commit `4a1abec` with `CURRENT_PROJECT_VERSION=6` and `DEVELOPMENT_TEAM` passed to Xcode (project file unchanged), exported with the existing App Store profiles and the distribution identity in a temporary keychain removed afterward. The **2,737,737-byte** IPA is at ignored `.build/Release/Suri-6.ipa`. Both targets verified as Apple Distribution signed with valid signatures, the `group.ph.suri.app` App Group, `get-task-allow` false, and build number 6. Apple completed processing with **VALID** status for build `915e3769-62b3-472f-bec9-3d39c61c7839`, and the upload command assigned it to the internal **Suri Demo** group without notifying testers or submitting for review.
+
+This build fixes the build 5 Message automation issue: the action's **Message text** is now an ordinary editable field (extracted metadata shows `inputConnectionBehavior = 0`, previously 2), and setup step 4 says to enter a common letter in Message Contains, tap Message text and choose Shortcut Input. After installing, open the existing automation, remove the old Check Message Locally action and add it again so Shortcuts picks up the new field. Eight iOS integration checks passed before archiving. **Still unverified on the physical iPhone with this build:** the corrected automation running on a real incoming text, locked-phone execution and timing, background memory use of the local model, and how much a single-letter filter covers.
+
+## Previous update — build 5
 
 Version **1.0.0 (5)** was archived from source commit `623f70c` with `CURRENT_PROJECT_VERSION=5` and `DEVELOPMENT_TEAM` passed to Xcode (the project file itself is unchanged), then exported with the existing App Store profiles and the distribution identity loaded into a temporary keychain that was removed afterward. The **2,737,299-byte** IPA is at ignored `.build/Release/Suri-5.ipa`. Both targets verified as signed by the Apple Distribution identity with a valid signature, the `group.ph.suri.app` App Group, `get-task-allow` false, and no device list in the profile; extracted App Intents metadata includes **Check Message Locally**. Apple completed processing with **VALID** status for build `74bfc73f-47ad-4c3d-b39c-83521039353b`, and the upload command assigned it to the internal **Suri Demo** group without notifying testers or submitting for review.
 
 This build adds the guided **Message automation** setup: a card under the Check header, one checklist (turn on, offline checker, run a test, connect incoming messages, confirm it works), a test action that sends the real private warning notification, and a Connected confirmation that stores only a time and result category. It also guards against a Shortcut wired to the sender and skips texts under ten characters. Before upload: 24 core checks, 8 iOS integration checks, and 4 simulator UI checks passed. **Not verified on a physical iPhone:** a real incoming-text trigger, that empty Sender/Message Contains filters do **not** work (iOS keeps Next disabled, observed on the phone, so build 5's step 4 wording was wrong and is corrected in the next build), locked-phone execution and timing, background memory use of the local model, and notification display.
 
-**Known issue in build 5:** the Check Message Locally action hides its Message text field (it was declared as connected to the previous action's result), so a Message automation prompts for text instead of using the received message. Workaround: add **Get Text from Input** before it. Fixed in source after build 5; needs a new build. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md).
+**Known issue in build 5 (fixed in build 6):** the Check Message Locally action hides its Message text field (it was declared as connected to the previous action's result), so a Message automation prompts for text instead of using the received message. Workaround: add **Get Text from Input** before it. Fixed in build 6. See [AUTOMATION_SETUP.md](AUTOMATION_SETUP.md).
 
 ## Previous update — build 4
 
