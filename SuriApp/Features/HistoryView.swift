@@ -7,8 +7,8 @@ struct HistoryView: View {
         Group {
             if model.history.isEmpty {
                 ContentUnavailableView {
-                    Label { Text("Your checks will be here") } icon: { SolarIcon(name: "history-outline", size: 44) }
-                } description: { Text("Check a message to save its result locally. Screenshots and full messages are not saved.") }
+                    Label { Text("No checks yet") } icon: { SolarIcon(name: "history-outline", size: 44) }
+                } description: { Text("Results appear here for 7 days. Screenshots and full messages are never saved.") }
                 actions: { Button("Check a message") { model.selectedTab = 0 }.buttonStyle(.borderedProminent) }
             } else {
                 List {
@@ -16,13 +16,13 @@ struct HistoryView: View {
                         ForEach(model.history) { item in
                             Button { model.viewHistory(item) } label: { HistoryRow(assessment: item) }.buttonStyle(.plain)
                         }.onDelete { model.deleteHistory(at: $0) }
-                    } footer: { Text("Results and quoted evidence stay on this device until they expire after 7 days, limited to 50 checks; expired records are removed when Suri next opens. Screenshots and full messages are not saved.") }
-                    Section { Button("Delete all saved checks", role: .destructive) { clear = true } }
+                    } footer: { Text("Kept on this device for 7 days, up to 50 checks. Expired checks are removed the next time Suri opens. Screenshots and full messages are never saved.") }
+                    Section { Button("Delete all checks", role: .destructive) { clear = true } }
                 }.scrollContentBackground(.hidden)
             }
-        }.background(SuriTheme.background).navigationTitle("History")
+        }.background(SuriTheme.background).navigationTitle("History").navigationBarTitleDisplayMode(.inline)
             .confirmationDialog("Delete all saved checks?", isPresented: $clear, titleVisibility: .visible) {
-                Button("Delete saved checks", role: .destructive) { model.clearHistory() }
+                Button("Delete all checks", role: .destructive) { model.clearHistory() }
             }
     }
 }

@@ -70,6 +70,6 @@ Core checks cover fabricated evidence, ambiguous input, protective code advice, 
 
 ## Disclosures
 
-App implementation was created during the build session spanning 9–10 October 2026 with Codex. Reused components include SwiftUI/Vision, llama.cpp (MIT), Qwen3 weights (Apache 2.0), and Solar icons by 480 Design (CC BY 4.0). See bundled `THIRD_PARTY_NOTICES.txt`. The user creates the showcase video with Claude and will disclose its reused components/tools separately.
+App implementation was created during the build session spanning 9–10 October 2026 with Codex. The SwiftUI interface polish (Check, Result, History, Family, Settings, onboarding) was done on 10 October 2026 with Claude Code. Reused components include SwiftUI/Vision, llama.cpp (MIT), Qwen3 weights (Apache 2.0), and Solar icons by 480 Design (CC BY 4.0). See bundled `THIRD_PARTY_NOTICES.txt`. The user creates the showcase video with Claude and will disclose its reused components/tools separately.
 
 No outside people were contacted, no live family-help messages were sent, and no hackathon submission or public App Store release was made. The user authorized a private TestFlight demo; its status is recorded in [TESTFLIGHT.md](TESTFLIGHT.md). The user-supplied deadline remains **10 October 2026, 10:00 AM Philippine time**; other publication/submission requires explicit authorization.

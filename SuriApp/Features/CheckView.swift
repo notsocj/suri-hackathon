@@ -11,38 +11,33 @@ struct CheckView: View {
     @State private var settings = false
     @FocusState private var editing: Bool
 
+    private var hasText: Bool { !model.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    private var busy: Bool { model.phase == .checking || model.phase == .extracting }
+
     var body: some View {
-        @Bindable var model = model
+        let result: Assessment? = model.phase == .result ? model.assessment : nil
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                if model.phase == .result, let assessment = model.assessment {
-                    ResultView(assessment: assessment) { help = true }
-                    Button("Check another message") { model.clearInput() }.buttonStyle(SuriButtonStyle(filled: false))
+            VStack(alignment: .leading, spacing: 24) {
+                if let result {
+                    ResultView(assessment: result, askFamily: { help = true }, checkAnother: { model.clearInput() })
                 } else {
                     header
-                    captureButtons
-                    if !model.modelInstalled { setupCard }
-                    inputEditor
+                    if !model.modelInstalled { setupBanner }
                     phaseContent
-                    if model.phase != .checking && model.phase != .extracting {
-                        Button {
-                            editing = false; model.check()
-                        } label: { Label { Text("Check this message") } icon: { SolarIcon(name: "shield-check-outline") } }
-                            .buttonStyle(SuriButtonStyle())
-                            .disabled(model.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            .opacity(model.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1)
-                            .accessibilityIdentifier("check-message")
-                    }
+                    captureButtons
+                    inputEditor
                     if model.text.isEmpty { recentChecks }
-                    Text("Your screenshot and message stay on this device. Online guidance is optional and shares categories only.")
-                        .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text("Your screenshot and message stay on this device.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
-            }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 30)
+            }.padding(.horizontal, 24).padding(.top, result == nil ? 12 : 8).padding(.bottom, 24)
         }
         .scrollDismissesKeyboard(.interactively)
         .background(SuriTheme.background)
-        .navigationTitle(model.phase == .result ? "Your check" : "")
+        .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar(result) }
+        .navigationTitle(result == nil ? "" : "Your check")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(result == nil ? .hidden : .automatic, for: .navigationBar)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } }
         }
@@ -73,79 +68,120 @@ struct CheckView: View {
         .task { importSharedContent() }
     }
 
+    // MARK: Pinned primary action — one filled button per state, always reachable.
+
+    @ViewBuilder private func bottomBar(_ result: Assessment?) -> some View {
+        if let result {
+            let warn = result.result.risk != .noObviousSigns
+            Group {
+                if warn {
+                    Button { help = true } label: { Label { Text("Ask my family") } icon: { SolarIcon(name: "users-group-rounded-outline") } }
+                        .accessibilityIdentifier("ask-family")
+                } else {
+                    Button("Check another message") { model.clearInput() }
+                }
+            }.buttonStyle(SuriButtonStyle()).barBackground()
+        } else if hasText && !busy {
+            Button { editing = false; model.check() } label: {
+                Label { Text("Check message") } icon: { SolarIcon(name: "shield-check-outline") }
+            }.buttonStyle(SuriButtonStyle()).accessibilityIdentifier("check-message").barBackground()
+        }
+    }
+
+    // MARK: Idle
+
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SuriWordmark()
-            Text("Suri bago sorry.").font(.subheadline).foregroundStyle(.secondary)
-            Text("Pause. Check.\nDecide with care.")
-                .font(.system(.largeTitle, design: .default, weight: .semibold)).tracking(-0.8).padding(.top, 14)
-            Text("Get a second opinion on a message before you reply, click, or pay.")
-                .font(.body).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 28) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    SuriWordmark()
+                    Text("Suri bago sorry.").font(.footnote).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 12)
+                SuriIconButton(icon: "settings-outline", label: "Settings") { settings = true }
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Check a message").font(.largeTitle.bold()).tracking(-0.6)
+                Text("Before you reply, click, or pay.").font(.body).foregroundStyle(.secondary)
+            }
         }
     }
     private var captureButtons: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 4) {
             PhotosPicker(selection: $photo, matching: .images) {
                 Label { Text("Choose screenshot") } icon: { SolarIcon(name: "gallery-outline") }
-            }.buttonStyle(SuriButtonStyle()).accessibilityIdentifier("choose-screenshot")
-            Button { editing = true } label: {
-                Label { Text("Paste or type a message") } icon: { SolarIcon(name: "clipboard-text-outline") }
-            }.buttonStyle(SuriButtonStyle(filled: false))
-            Button("Import an image from Files") { importFile = true }.font(.subheadline).padding(.vertical, 4)
+            }.buttonStyle(SuriButtonStyle(filled: !hasText)).accessibilityIdentifier("choose-screenshot")
+            Button("Import from Files") { importFile = true }.buttonStyle(SuriLinkStyle())
         }
     }
-    private var setupCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label { Text("Prepare your offline checker").font(.headline) } icon: { SolarIcon(name: "download-minimalistic-outline") }
-            Text("Download the local model once (about 1.3 GB). After setup, checking works without internet.")
-                .font(.subheadline).foregroundStyle(.secondary)
-            Button("Open model setup") { settings = true }.font(.headline).padding(.vertical, 6)
-        }.padding(20).background(SuriTheme.surface, in: RoundedRectangle(cornerRadius: 20))
+    private var setupBanner: some View {
+        HStack(alignment: .top, spacing: 14) {
+            SolarIcon(name: "download-minimalistic-outline", size: 26).foregroundStyle(SuriTheme.teal).padding(.top, 2)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set up offline checking").font(.headline)
+                Text("One-time 1.3 GB download. After that, checks work without internet.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Button("Open setup") { settings = true }.buttonStyle(SuriLinkStyle())
+            }
+        }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
     }
     private var inputEditor: some View {
         @Bindable var model = model
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 10) {
             HStack {
-                SectionHeading(title: "Message to check")
+                SectionHeading(title: "Message")
                 Spacer()
-                if !model.text.isEmpty { Button("Clear") { model.clearInput() }.font(.subheadline) }
+                if !model.text.isEmpty { Button("Clear") { model.clearInput() }.buttonStyle(SuriLinkStyle()) }
             }
             ZStack(alignment: .topLeading) {
-                if model.text.isEmpty { Text("Paste or type the message here…").foregroundStyle(.secondary).padding(.top, 12).padding(.leading, 5).allowsHitTesting(false) }
-                TextEditor(text: $model.text).frame(minHeight: 145).scrollContentBackground(.hidden)
+                if model.text.isEmpty {
+                    Text("Paste or type the message here…").foregroundStyle(.secondary)
+                        .padding(.top, 8).padding(.leading, 5).allowsHitTesting(false)
+                }
+                TextEditor(text: $model.text).frame(minHeight: 120).scrollContentBackground(.hidden)
+                    .autocorrectionDisabled().textInputAutocapitalization(.never)
                     .focused($editing).accessibilityLabel("Message to check").accessibilityIdentifier("message-input")
-            }.padding(12).background(SuriTheme.surface, in: RoundedRectangle(cornerRadius: 18))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.primary.opacity(editing ? 0.25 : 0.08)))
-            if !model.text.isEmpty {
-                Text("Review the text first—especially ‘not’, codes, amounts, and links. Edit anything the screenshot reader missed.")
+            }.padding(12).suriCard(radius: 16)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(SuriTheme.teal.opacity(editing ? 0.7 : 0), lineWidth: 1.5))
+            if model.text.isEmpty {
+                let target = self.model
+                PasteButton(payloadType: String.self) { strings in
+                    guard let value = strings.first else { return }
+                    Task { @MainActor in target.needsOCRReview = false; target.text = value }
+                }.labelStyle(.titleAndIcon).buttonBorderShape(.capsule).tint(SuriTheme.teal)
+            } else {
+                Text("Check that the text matches the message, especially “not”, codes, amounts, and links. Edit anything the reader missed.")
                     .font(.footnote).foregroundStyle(model.needsOCRReview ? SuriTheme.warning : .secondary)
-                Text("\(model.text.count) / 3,000 characters").font(.caption).foregroundStyle(.secondary)
+                if model.text.count > 2_000 {
+                    Text("\(model.text.count) / 3,000 characters").font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
     }
     @ViewBuilder private var phaseContent: some View {
         switch model.phase {
         case .checking, .extracting:
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) { ProgressView(); Text(model.phase == .checking ? "Checking on this device…" : "Reading your screenshot…").font(.headline) }
-                Text(model.phase == .checking ? "The first check may take longer while the model loads. Your message stays here." : "You can review and correct the text before checking.")
-                    .font(.subheadline).foregroundStyle(.secondary)
-                Button("Cancel") { model.cancelCheck() }.padding(.vertical, 5)
-            }.padding(20).background(SuriTheme.surface, in: RoundedRectangle(cornerRadius: 18))
-        case .failed(let message):
             VStack(alignment: .leading, spacing: 10) {
-                Text("Could not complete check").font(.headline)
+                HStack(spacing: 12) { ProgressView(); Text(model.phase == .checking ? "Checking on this device…" : "Reading your screenshot…").font(.headline) }
+                Text(model.phase == .checking ? "The first check takes longer while the model loads. Your message stays here." : "You can correct the text before checking.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Button("Cancel") { model.cancelCheck() }.buttonStyle(SuriLinkStyle())
+            }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
+        case .failed(let message):
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Could not complete check").font(.headline).foregroundStyle(SuriTheme.warning)
                 Text(message).font(.subheadline)
-                Button("Ask someone I trust") { help = true }.font(.headline).padding(.vertical, 5)
-            }.foregroundStyle(SuriTheme.warning).padding(20).background(SuriTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+                Button("Ask someone I trust") { help = true }.buttonStyle(SuriLinkStyle())
+            }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
         default: EmptyView()
         }
     }
     @ViewBuilder private var recentChecks: some View {
         if !model.history.isEmpty {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack { SectionHeading(title: "Recent checks"); Spacer(); Button("See all") { model.selectedTab = 1 }.font(.subheadline) }
-                ForEach(model.history.prefix(2)) { item in
+            VStack(alignment: .leading, spacing: 4) {
+                HStack { SectionHeading(title: "Recent"); Spacer(); Button("See all") { model.selectedTab = 1 }.buttonStyle(SuriLinkStyle()) }
+                ForEach(Array(model.history.prefix(3).enumerated()), id: \.element.id) { index, item in
+                    if index > 0 { Divider() }
                     Button { model.viewHistory(item) } label: { HistoryRow(assessment: item) }.buttonStyle(.plain)
                 }
             }
@@ -157,5 +193,12 @@ struct CheckView: View {
         case .text(let value): model.cancelCheck(); model.text = value; model.selectedTab = 0
         case .image(let data): model.importImage(data)
         }
+    }
+}
+
+private extension View {
+    func barBackground() -> some View {
+        padding(.horizontal, 24).padding(.vertical, 10).frame(maxWidth: .infinity)
+            .background(SuriTheme.background)
     }
 }

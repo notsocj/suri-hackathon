@@ -5,7 +5,6 @@ struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     @State private var consent = false
-    @State private var token = ""
     @State private var clear = false
     var body: some View {
         @Bindable var model = model
@@ -17,38 +16,74 @@ struct SettingsView: View {
                     ProgressView()
                     Button("Cancel download", role: .cancel) { model.cancelDownload() }
                 } else if !model.modelInstalled {
-                    Button("Download local model (about 1.3 GB)") { model.installModel() }.accessibilityIdentifier("download-model")
+                    Button("Download model (1.3 GB)") { model.installModel() }.accessibilityIdentifier("download-model")
                 }
-            } header: { Text("Local AI") } footer: {
-                Text("Setup downloads model files from Qwen on Hugging Face. Messages are not part of the download. Once installed, local checking needs no internet. Filipino/Taglish quality depends on the model and should be evaluated.")
+            } header: { Text("Offline checker") } footer: {
+                Text("Downloaded once from Hugging Face. Messages are never part of the download, and checks then work without internet. Accuracy on Filipino and Taglish hasn't been measured yet.")
             }
             Section {
-                Toggle("Automatic online guidance", isOn: Binding(get: { model.cloudEnabled }, set: { enabled in
+                Toggle("Online guidance", isOn: Binding(get: { model.cloudEnabled }, set: { enabled in
                     if enabled { consent = true } else { model.cloudEnabled = false }
                 }))
-                Toggle("Use Wi-Fi only", isOn: $model.wifiOnly).disabled(!model.cloudEnabled)
-                Text("\(model.network.connected ? "Network path available" : "No network path")\(model.network.wifi ? " · Wi-Fi" : "")")
-                    .font(.footnote).foregroundStyle(.secondary)
-            } header: { Text("Optional online guidance") } footer: {
-                Text("Only fixed requested-action and warning-pattern categories may leave the device. Never screenshots, message text, quotes, private codes, contact details, or URLs. Guidance does not verify the original message. Turning this off cancels pending requests; requests already transmitted cannot be recalled.")
+                Toggle("Wi-Fi only", isOn: $model.wifiOnly).disabled(!model.cloudEnabled)
+                NavigationLink("Online service") { OnlineServiceView() }
+            } header: { Text("Online guidance (optional)") } footer: {
+                Text("Only the requested action and warning categories can leave your phone. Never screenshots, message text, quotes, codes, contacts, or links. It doesn't verify the original message. Turning this off cancels pending requests; requests already sent can't be recalled.")
             }
-            Section("Online service setup") {
+            Section {
+                Toggle("Save check history", isOn: $model.historyEnabled)
+                Button("Delete all checks", role: .destructive) { clear = true }
+            } header: { Text("On this device") } footer: {
+                Text("History keeps results and quoted evidence for 7 days, up to 50 checks. Screenshots and full messages are never saved.")
+            }
+            Section {
+                NavigationLink("About and licenses") { AboutView() }
+            }
+        }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .alert("Turn on online guidance?", isPresented: $consent) {
+                Button("Keep local only", role: .cancel) { }
+                Button("Turn on") { model.cloudEnabled = true }
+            } message: {
+                Text("After a local check, Suri may send fixed action and warning categories to your configured online service when an allowed connection exists. The service uses OpenAI. No message text, screenshot, quote, recipient, or code is sent.")
+            }
+            .confirmationDialog("Delete all saved checks?", isPresented: $clear, titleVisibility: .visible) {
+                Button("Delete all checks", role: .destructive) { model.clearHistory() }
+            }
+    }
+}
+
+/// Developer-facing connection details, kept off the main settings list.
+struct OnlineServiceView: View {
+    @Environment(AppModel.self) private var model
+    @State private var token = ""
+    var body: some View {
+        @Bindable var model = model
+        Form {
+            Section {
                 TextField("Gateway URL", text: $model.gatewayURL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                 SecureField("Gateway access token", text: $token).textInputAutocapitalization(.never).autocorrectionDisabled()
-                Button("Save gateway access token") { model.saveGatewayToken(token); token = "" }
+                Button("Save access token") { model.saveGatewayToken(token); token = "" }.disabled(token.isEmpty)
+            } footer: {
                 Text("The OpenAI API key stays on your server. Enter only the gateway access token here. HTTPS is required outside localhost.")
-                    .font(.footnote).foregroundStyle(.secondary)
             }
-            Section("On this device") {
-                Toggle("Save check history", isOn: $model.historyEnabled)
-                Text("History retains results and evidence quotes for 7 days, at most 50 checks; expired records are removed when Suri next opens. Original screenshots and full messages are not retained.")
-                    .font(.footnote).foregroundStyle(.secondary)
-                Button("Delete saved checks", role: .destructive) { clear = true }
+            Section {
+                Text("\(model.network.connected ? "Network available" : "No network")\(model.network.wifi ? " · Wi-Fi" : "")")
+                    .foregroundStyle(.secondary)
             }
-            Section("About Suri") {
+        }.navigationTitle("Online service").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct AboutView: View {
+    var body: some View {
+        Form {
+            Section {
                 Text("Suri bago sorry.").font(.headline)
-                Text("Suri helps you pause and verify. It cannot guarantee legitimacy, confirm a sender's identity, or block a payment.")
-                Text("Built with SwiftUI, Apple Vision, llama.cpp, and Qwen3. Qwen3 model: Apache 2.0. Solar icons by 480 Design: CC BY 4.0. Development assisted by Codex.")
+                Text("Suri helps you pause and verify. It can't guarantee a message is legitimate, confirm who sent it, or block a payment.")
+            }
+            Section {
+                Text("Built with SwiftUI, Apple Vision, llama.cpp, and Qwen3 (Apache 2.0). Solar icons by 480 Design (CC BY 4.0). Development assisted by Codex and Claude Code.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Link("Solar icon attribution", destination: URL(string: "https://icon-sets.iconify.design/solar/")!)
                 Link("Qwen model and license", destination: URL(string: "https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF")!)
@@ -59,16 +94,6 @@ struct SettingsView: View {
                     }.navigationTitle("Notices")
                 }
             }
-        }.navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-            .alert("Enable category-only online guidance?", isPresented: $consent) {
-                Button("Keep local only", role: .cancel) { }
-                Button("Enable online guidance") { model.cloudEnabled = true }
-            } message: {
-                Text("After a local check, Suri may send fixed action and warning categories to your configured online service when an allowed connection exists. The service uses OpenAI. No message text, screenshot, evidence quote, recipient, or private code is sent.")
-            }
-            .confirmationDialog("Delete all saved checks?", isPresented: $clear, titleVisibility: .visible) {
-                Button("Delete saved checks", role: .destructive) { model.clearHistory() }
-            }
+        }.navigationTitle("About").navigationBarTitleDisplayMode(.inline)
     }
 }
