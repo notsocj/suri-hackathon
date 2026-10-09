@@ -40,9 +40,10 @@ Reported by the user from the phone, with screenshots:
 
 - The app installs from TestFlight, the 1.28 GB model downloads (after the background-download fix in build 2), and manual local checks work.
 - A Messages automation fired on real incoming SMS from a second phone and ran immediately. With build 7 the first incoming text was checked and produced a Suri warning; tapping it opened the result.
-- On a second, longer text, Shortcuts reported "Check Message Locally could not run because an unknown error occurred" although Suri had saved the correct result. Build 8 answers Shortcuts early and finishes the check in the background; that fix is **verified only in the simulator so far**.
+- On a second, longer text, Shortcuts reported "Check Message Locally could not run because an unknown error occurred" although Suri had saved the correct result. Build 8 answers Shortcuts early and finishes the check in the background.
+- **With build 10 the user reports that incoming-SMS automation works**, including the instant heads-up followed by Suri's result; that **Check Copied Message works from the Action Button**; and that **Ask my family works** from the phone (the Messages draft to the trusted contact).
 
-**Not tested on the phone:** build 8's early-answer fix, build 10's heads-up notification, locked-screen runs, background memory use and timing, coverage of a single-letter Message Contains filter, Check Copied Message and the Action Button, the Messages composer for family help, and VoiceOver. SMS filtering, automatic family delivery, and live OpenAI connectivity are not implemented or not configured and must not be claimed.
+**Not yet tested on the phone:** locked-screen runs, background memory use and timing, coverage of a single-letter Message Contains filter, Check Copied Message from Siri, Spotlight or Back Tap, an airplane-mode check, and VoiceOver. SMS filtering, automatic family delivery, and live OpenAI connectivity are not implemented or not configured and must not be claimed.
 
 ## For judges
 
