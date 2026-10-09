@@ -37,6 +37,7 @@ struct AutomationSettingsView: View {
                 testStep
                 connectStep
                 confirmStep
+                messengerCard
                 NavigationLink { AutomationCoverageView() } label: {
                     Text("What gets checked, and privacy").font(.subheadline.weight(.semibold)).foregroundStyle(SuriTheme.teal)
                         .frame(maxWidth: .infinity, minHeight: 44)
@@ -140,6 +141,17 @@ struct AutomationSettingsView: View {
     }
 
     // MARK: Pieces
+
+    /// iOS gives apps no access to Messenger, so the closest thing is a one-tap check of copied text.
+    private var messengerCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label { Text("Messenger and other apps").font(.headline.weight(.bold)) } icon: { Image(systemName: "doc.on.clipboard").foregroundStyle(SuriTheme.teal) }
+            Text("iOS doesn't let any app read Messenger. Instead, copy the message, then run Check Copied Message. Suri opens and checks it on this phone.")
+                .font(.subheadline.weight(.medium)).foregroundStyle(.secondary)
+            Text("Put it on the Action Button (iPhone Settings, Action Button, Shortcut, Suri), or say \"Check copied message with Suri\" to Siri.")
+                .font(.footnote).foregroundStyle(.secondary)
+        }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
+    }
 
     // MARK: Actions
 

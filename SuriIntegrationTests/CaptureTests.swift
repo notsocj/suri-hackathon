@@ -153,4 +153,10 @@ import UIKit
         XCTAssertTrue(skipped.contains("Too short"))
         XCTAssertEqual(AutomationPreferences.lastCheck?.outcome, AutomationPreferences.skippedOutcome)
     }
+    func testCopiedMessageRequestIsHandledOnce() async throws {
+        _ = ClipboardCheck.take()
+        _ = try await CheckCopiedMessageIntent().perform()
+        // The live Check screen consumes the request immediately; nothing may linger and fire again later.
+        XCTAssertFalse(ClipboardCheck.take())
+    }
 }

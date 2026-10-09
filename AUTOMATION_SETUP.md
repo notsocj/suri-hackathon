@@ -30,7 +30,9 @@ Guards: if the action receives only a phone number (the Shortcut was wired to th
 
 ## Messenger and other chat apps
 
-Suri cannot read another app's notification inbox through UserNotifications. Apple's iOS 27 guide documents a broader Notification trigger; the checked iOS 26 guide does not list it. The user's iOS 26.6.1 phone therefore uses **Share to Suri**, screenshot import, or copied text for those apps. A chat app may provide its own Shortcuts actions; no such integration has been validated here.
+Suri cannot read another app's notification inbox through UserNotifications, and the user's iOS 26.6.1 phone has no Notification trigger (Apple documents one only for iOS 27). Messenger messages do not reach the Messages trigger. So other chat apps cannot be checked automatically.
+
+The closest path is **Check Copied Message**, an App Shortcut available without any setup in Shortcuts, Spotlight and Siri ("Check copied message with Suri"), and assignable to the Action Button. Copy a message in Messenger, run it, and Suri opens, iOS asks permission to paste, and the copied text is checked on the device. The clipboard is read only when the person runs the action. Verified on the iPhone 17 Pro simulator (iOS 26.5): the action appeared under Suri in Shortcuts, opened Suri, showed the system paste prompt, and a synthetic job-fee scam produced Warning signs found with quoted evidence. **Not yet verified on the physical phone**, including the Action Button assignment. Share to Suri, screenshot import and paste remain available.
 
 ## Consent, storage, and cancellation
 

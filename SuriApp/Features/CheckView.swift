@@ -77,8 +77,9 @@ struct CheckView: View {
             NavigationStack { AutomationSettingsView(showsDone: true) }
         }
         .onChange(of: model.selectedTab) { _, _ in editing = false }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in importSharedContent() }
-        .task { importSharedContent() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in importSharedContent(); checkClipboardIfRequested() }
+        .onReceive(NotificationCenter.default.publisher(for: ClipboardCheck.requested)) { _ in checkClipboardIfRequested() }
+        .task { importSharedContent(); checkClipboardIfRequested() }
     }
 
     // MARK: Pinned primary action — one filled button per state, always reachable.
@@ -216,6 +217,18 @@ struct CheckView: View {
                 }
             }.padding(18).frame(maxWidth: .infinity, alignment: .leading).suriCard()
         }
+    }
+    /// Runs only after the person triggers Check Copied Message; iOS shows its own paste prompt.
+    private func checkClipboardIfRequested() {
+        guard ClipboardCheck.take() else { return }
+        model.selectedTab = 0
+        guard let copied = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines), !copied.isEmpty else {
+            model.notice = "Nothing to check. Copy the message first, then run Check Copied Message again."
+            return
+        }
+        model.cancelCheck(); model.needsOCRReview = false
+        model.text = copied
+        model.check()
     }
     private func importSharedContent() {
         guard let content = SharedInbox.takeNext() else { return }
