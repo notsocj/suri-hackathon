@@ -43,7 +43,6 @@ struct CheckView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(result == nil ? .hidden : .automatic, for: .navigationBar)
         .toolbar {
-            ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } }
             if result != nil {
                 ToolbarItem(placement: .topBarLeading) {
                     Button { model.closeResult() } label: {
@@ -145,6 +144,8 @@ struct CheckView: View {
                 SectionHeading(title: "Message")
                 Spacer()
                 if !model.text.isEmpty { Button("Clear") { model.clearInput() }.buttonStyle(SuriLinkStyle()) }
+                // In the heading, not a keyboard toolbar: iOS 26 floats that beside the tab bar.
+                if editing { Button("Done") { editing = false }.buttonStyle(SuriLinkStyle()).padding(.leading, 12).accessibilityLabel("Done typing") }
             }
             ZStack(alignment: .topLeading) {
                 if model.text.isEmpty {
