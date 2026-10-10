@@ -10,12 +10,12 @@ A native iPhone scam-check companion for Philippine users, with readable evidenc
 | --- | --- |
 | Project | **Suri**, "Suri bago sorry." |
 | What it does | Checks a suspicious text, screenshot, or copied chat message on the phone with a local AI model, shows the exact words behind each warning and a next step, warns automatically about incoming SMS, and helps the user ask a trusted relative. |
-| Team | _To be filled in by the team before submission._ |
+| Team | **Indomie**: Caleb John Sacdalan, Robert Terquin Laqui, Sam Richmond Go, Louis Gabriel Damondamon |
 | Local AI | Qwen3 1.7B (Apache 2.0), `ggml-org/Qwen3-1.7B-GGUF` Q4_K_M at revision `daeb8e2`, run by llama.cpp b11527 on the CPU, with Apple Vision OCR |
 | App stack | Swift 6.3.3, SwiftUI, App Intents, UserNotifications; Xcode 26.6; iOS 18 deployment target; tested on iOS 26.5 simulator and the user's iPhone on iOS 26.6.1 |
 | Cloud (optional, off by default) | Node 24 gateway calling the OpenAI Responses API (`gpt-4.1-mini` by default) with category-only input. Not configured or verified live. |
 | AI coding tools | Codex and Claude Code (see Disclosures) |
-| Demo video / post | _To be added by the team._ |
+| Demo video | [youtu.be/cyMo31DR3WI](https://youtu.be/cyMo31DR3WI) (60 seconds; synthetic messages; AI voiceover) |
 
 ## Current implementation
 
@@ -119,6 +119,6 @@ xcodebuild -project Suri.xcodeproj -scheme Suri -destination 'platform=iOS Simul
 
 ## Disclosures
 
-App implementation was created during the build session spanning 9–10 October 2026 with the AI coding tools **Codex** and **Claude Code**. Codex built the initial app, local inference, gateway, Shortcuts action and notifications, and TestFlight builds 1–4. Claude Code did the interface redesign and wordmark, the background model download, the Message automation setup guide and fixes, Check Copied Message, and TestFlight builds 5 onward. Reused components include SwiftUI/Vision, llama.cpp (MIT), Qwen3 weights (Apache 2.0), and Solar icons by 480 Design (CC BY 4.0). See bundled `THIRD_PARTY_NOTICES.txt`. The user creates the showcase video with Claude and will disclose its reused components/tools separately.
+App implementation was created during the build session spanning 9–10 October 2026 with the AI coding tools **Codex** and **Claude Code**. Codex built the initial app, local inference, gateway, Shortcuts action and notifications, and TestFlight builds 1–4. Claude Code did the interface redesign and wordmark, the background model download, the Message automation setup guide and fixes, Check Copied Message, and TestFlight builds 5 onward. Reused components include SwiftUI/Vision, llama.cpp (MIT), Qwen3 weights (Apache 2.0), and Solar icons by 480 Design (CC BY 4.0). See bundled `THIRD_PARTY_NOTICES.txt`. The showcase video was made by the user with Claude: the animation is composed in **Remotion**, and the voiceover is AI-generated speech from **ElevenLabs** using the voice "Cedric - Effective, Powerful and Steady" on the **Eleven Multilingual v2** model. The voiceover is synthetic, the on-screen messages are synthetic, and the video project is not part of this repository. Neither ElevenLabs nor Remotion runs inside the Suri app.
 
 No outside people were contacted, no live family-help messages were sent, and no hackathon submission or public App Store release was made. The user authorized a private TestFlight demo; its status is recorded in [TESTFLIGHT.md](TESTFLIGHT.md). The user-supplied deadline remains **10 October 2026, 10:00 AM Philippine time**; other publication/submission requires explicit authorization.
