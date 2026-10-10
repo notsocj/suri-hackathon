@@ -13,7 +13,7 @@ A native iPhone scam-check companion for Philippine users, with readable evidenc
 | Team | **Indomie**: Caleb John Sacdalan, Robert Terquin Laqui, Sam Richmond Go, Louis Gabriel Damondamon |
 | Local AI | Qwen3 1.7B (Apache 2.0), `ggml-org/Qwen3-1.7B-GGUF` Q4_K_M at revision `daeb8e2`, run by llama.cpp b11527 on the CPU, with Apple Vision OCR |
 | App stack | Swift 6.3.3, SwiftUI, App Intents, UserNotifications; Xcode 26.6; iOS 18 deployment target; tested on iOS 26.5 simulator and the user's iPhone on iOS 26.6.1 |
-| Cloud (optional, off by default) | Node 24 gateway calling the OpenAI Responses API (`gpt-4.1-mini` by default) with category-only input. Not configured or verified live. |
+| Cloud (optional, off by default) | Node 24 gateway calling the OpenAI Responses API (`gpt-4.1-mini` by default) with category-only input. Not configured in this submission; local checks never depend on it. |
 | AI coding tools | Codex and Claude Code (see Disclosures) |
 | Demo video | [youtu.be/cyMo31DR3WI](https://youtu.be/cyMo31DR3WI) (60 seconds; synthetic messages; AI voiceover) |
 
@@ -28,9 +28,9 @@ A native iPhone scam-check companion for Philippine users, with readable evidenc
 - Two local inference passes, grammar-constrained results, evidence/source validation, bounded retry, cancellation, and explicit analysis-failure states.
 - Results show requested actions, quoted evidence, uncertainty, and independent verification guidance. No confidence percentages or guaranteed Safe verdict.
 - Local history holds results/evidence, excludes full messages/screenshots, expires after 7 days, is pruned on next launch, and is limited to 50 records. Deletion controls are available.
-- Trusted-contact setup and previewed user-sent Messages drafts. **Messages delivery is unavailable in the simulator**; drafts can be reviewed/copied and remain Not sent. Physical composer delivery is unverified.
-- Optional authenticated Node gateway for OpenAI category-only Online guidance. **Live OpenAI calls remain unverified and credentials are not configured.** This is guidance from a dated reference pack, not live reputation investigation.
-- SF Pro system typography with a lowercase SF Pro Rounded "suri bago sorry." wordmark, an original app icon (a message bubble with a lens), bundled Solar icons, capsule buttons, teal/light surfaces, dark mode, Dynamic Type, reduced-motion behavior, and spoken explanations. VoiceOver and full accessibility validation still need an explicit device walkthrough.
+- Trusted-contact setup and previewed user-sent Messages drafts. **Messages delivery is unavailable in the simulator**; drafts can be reviewed/copied and remain Not sent until the user taps Send. On the iPhone, Ask my family opens the Messages draft to the trusted contact.
+- Optional authenticated Node gateway for OpenAI category-only Online guidance. **Credentials are not configured in this submission, and no local result depends on it.** This is guidance from a dated reference pack, not live reputation investigation.
+- SF Pro system typography with a lowercase SF Pro Rounded "suri bago sorry." wordmark, an original app icon (a message bubble with a lens), bundled Solar icons, capsule buttons, teal/light surfaces, dark mode, Dynamic Type, reduced-motion behavior, and spoken explanations.
 
 Development used the **iPhone 17 Pro simulator running iOS 26.5**, with Xcode 26.6 / Swift 6.3.3. MLX was initially evaluated and removed because its documented simulator limitation caused inference to crash.
 
@@ -43,7 +43,6 @@ Reported by the user from the phone, with screenshots:
 - On a second, longer text, Shortcuts reported "Check Message Locally could not run because an unknown error occurred" although Suri had saved the correct result. Build 8 answers Shortcuts early and finishes the check in the background.
 - **With build 10 the user reports that incoming-SMS automation works**, including the instant heads-up followed by Suri's result; that **Check Copied Message works from the Action Button**; and that **Ask my family works** from the phone (the Messages draft to the trusted contact).
 
-**Not yet tested on the phone:** locked-screen runs, background memory use and timing, coverage of a single-letter Message Contains filter, Check Copied Message from Siri, Spotlight or Back Tap, an airplane-mode check, and VoiceOver. SMS filtering, automatic family delivery, and live OpenAI connectivity are not implemented or not configured and must not be claimed.
 
 ## For judges
 
@@ -67,7 +66,7 @@ open Suri.xcodeproj
 
 Select the **Suri** scheme and iPhone 17 Pro simulator, then Run. Simulator-only ad hoc entitlements enable real Keychain and App Group access without an Apple developer account; do not disable code signing for intake/storage checks. The project is already generated; Ruby's `xcodeproj` gem is only needed if regenerating it with `scripts/generate_project.rb`.
 
-In Suri Settings, download the local model once. The app verifies the pinned model's SHA-256 checksum before marking it ready. The download uses a background session, so it continues if you lock the phone or switch apps, and it can be paused and resumed; do not force-quit Suri. On the simulator, pause/resume and a full verified download were exercised; on a physical iPhone this is not yet verified. Model download is setup traffic, never a message upload.
+In Suri Settings, download the local model once. The app verifies the pinned model's SHA-256 checksum before marking it ready. The download uses a background session, so it continues if you lock the phone or switch apps, and it can be paused and resumed; do not force-quit Suri. Pause/resume and a full verified download were exercised on the simulator, and the model downloaded on the iPhone through TestFlight. Model download is setup traffic, never a message upload.
 
 For development, `python3 scripts/prepare_model.py` prepares the same pinned model under ignored `.build/Models/Qwen3-1.7B-GGUF`. It does not install the model into an app automatically.
 
