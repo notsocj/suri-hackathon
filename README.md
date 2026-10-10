@@ -15,7 +15,7 @@ A native iPhone scam-check companion for Philippine users, with readable evidenc
 | App stack | Swift 6.3.3, SwiftUI, App Intents, UserNotifications; Xcode 26.6; iOS 18 deployment target; tested on iOS 26.5 simulator and the user's iPhone on iOS 26.6.1 |
 | Cloud (optional, off by default) | Node 24 gateway calling the OpenAI Responses API (`gpt-4.1-mini` by default) with category-only input. Not configured in this submission; local checks never depend on it. |
 | AI coding tools | Codex and Claude Code (see Disclosures) |
-| Demo video | [youtu.be/cyMo31DR3WI](https://youtu.be/cyMo31DR3WI) (60 seconds; synthetic messages; AI voiceover) |
+| Demo video / post | Video: [youtu.be/cyMo31DR3WI](https://youtu.be/cyMo31DR3WI) (60 seconds; synthetic messages; AI voiceover). LinkedIn post: [lnkd.in/p/g7JkBqeP](https://lnkd.in/p/g7JkBqeP) |
 
 ## Current implementation
 
