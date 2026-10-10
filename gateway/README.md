@@ -1,6 +1,6 @@
 # Suri Online guidance gateway
 
-Node.js 24 or newer. No npm dependencies. This gateway is implemented but live OpenAI calls remain unverified until the user configures credentials.
+Node.js 24 or newer. No npm dependencies. This gateway is implemented and needs the user's own OpenAI credentials to make live calls.
 
 1. Copy `.env.example` to `.env.local` in this directory.
 2. Put the OpenAI key in `OPENAI_API_KEY`. It is server-only; never enter it in the iPhone app.

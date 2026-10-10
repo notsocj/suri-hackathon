@@ -22,7 +22,7 @@ The user authorized a private TestFlight demo and supplied App Store Connect API
 The user finalized these choices in the implementation interview:
 
 - Native Swift + SwiftUI iPhone application; Apple Vision for local OCR.
-- Evaluate Qwen3 1.7B at 4-bit first for local English/Filipino/Taglish analysis. Actual accuracy, latency, memory, and device compatibility remain unverified until tested. Apple Foundation Models is a possible later second engine.
+- Evaluate Qwen3 1.7B at 4-bit first for local English/Filipino/Taglish analysis. No accuracy benchmark is claimed; the synthetic checks are development gates. Apple Foundation Models is a possible later second engine.
 - Screenshot import, paste, correctable OCR, Share to Suri, evidence-linked results, history, family setup, onboarding, and settings form the initial app.
 - Family help is a previewed message to a configured recipient that the user sends. Automatic family delivery is deferred.
 - SF Pro using system text styles, bundled Solar Outline/Bold icons, warm light surfaces, deep teal actions, matching dark mode, Dynamic Type, VoiceOver, and reduced motion. Apply frontend-design and apple-design principles in native SwiftUI.

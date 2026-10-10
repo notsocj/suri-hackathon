@@ -1,6 +1,6 @@
 # Suri Apple platform feasibility
 
-Evidence checked **9 October 2026**. Documented capability and observed behavior on the user's phone are different statuses. The current native app implements selected screenshot/text import, Vision OCR, local Qwen inference, and Share intake. OCR, local inference, Keychain, and host App Group intake have passed simulator checks. Full physical-device behavior, notification automation, message filtering, and actual messaging delivery remain untested. Share Extension UI and resource behavior require a separate walkthrough; compilation alone does not verify every host app.
+Evidence checked **9 October 2026**. Documented capability and observed behavior on the user's phone are different statuses. The current native app implements selected screenshot/text import, Vision OCR, local Qwen inference, and Share intake. OCR, local inference, Keychain, and host App Group intake have passed simulator checks. On the user's iPhone (iOS 26.6.1, build 10), a user-created Shortcuts Messages automation with private warning notifications, Check Copied Message from the Action Button, and the Ask my family Messages draft were exercised. Share Extension UI and resource behavior require a separate walkthrough; compilation alone does not verify every host app.
 
 ## Capability matrix
 
